@@ -1,0 +1,68 @@
+We are using ElysiaJS for our backend. It is extremely fast and handles raw API and database queries significantly faster then NextJS as it uses bun package manager
+
+--> It is Designed with simplicity and type-safety in mind, Elysia offers a familiar API with extensive support for TypeScript and is optimized for Bun.
+
+--> It is just like FastAPI python web framework
+
+##
+Using Bun benefit.
+
+Performance and Speed
+Faster installs: bun install runs up to 25x to 30x faster than traditional npm install by optimizing how files are written and cached.
+
+Drop-in compatibility: It reads your existing package.json and creates a compatible node_modules folder, meaning no code changes are required to switch
+##
+
+### Reasons to Choose ElysiaJS instead of using NextJS alone.
+
+-> performance, developer velocity, and type safety
+
+Here are main reason
+
+1. Extreme Performance and Low Latency
+
+I chose ElysiaJS because it is built from the ground up for the Bun runtime. In performance-critical parts of the application, it handles requests significantly faster with lower memory consumption than traditional Node.js frameworks like Express or Next.js API routes.
+
+2. True End-to-End Type Safety (The "Eden" Ecosystem)
+
+The integration with Eden Client was a massive productivity booster. It gives the frontend full type-awareness of the backend API without any manual code generation. If I modify an API schema on the backend, TypeScript immediately catches breaking changes on the Next.js frontend, preventing runtime bugs before they hit production.
+
+
+3. Unified Validation and OpenAPI Documentation
+
+ElysiaJS handles data validation out of the box using TypeBox. It strictly validates incoming network requests and automatically generates up-to-date Swagger/OpenAPI documentation. This saved me from writing boilerplate validation logic and ensured the API documentation never drifted from the actual code.
+
+
+4. Architectural Separation of Concerns
+
+By moving the heavy API logic out of Next.js and into a dedicated ElysiaJS backend, I decoupled the frontend presentation layer from the core business logic. This keeps the Next.js build lean, speeds up deployment times, and ensures the backend can scale independently on a persistent server without serverless cold-start penalties.
+
+
+Framework Philosophy: 
+
+ElysiaJS is a minimalist, micro-framework (similar to Express or FastAPI). It gives you a fast router and type validation, but leaves database setup and structure up to you. Django is a "batteries-included" monolithic framework. It provides an Object-Relational Mapper (ORM), admin panel, user authentication, and form validation right out of the box.
+
+Performance Focus: 
+
+ElysiaJS focuses on extreme execution speed and low latency by leveraging Bun. Django prioritizes developer productivity and rapid deployment over raw execution speed.
+
+
+Choose ElysiaJS if you are building high-performance TypeScript microservices, APIs, or need seamless end-to-end type safety with a frontend like Next.js or React.
+"""
+ Bun is fully compatible with Next.js and can be used in two different ways:
+ 
+ 1. As a Package Manager (Replacing npm)You can use Bun purely to create projects and manage dependencies. This speeds up installation times drastically without changing how your app runs.Create a project: bun create next-app@latestInstall packages: bun add <package-name> (instead of npm install)
+ 
+ 2. As the Server Runtime (Replacing Node.js)You can force Next.js to use Bun’s ultra-fast runtime environment instead of Node.js to execute server-side code, read files, and serve API responses. Both Vercel natively supports the Bun runtime and hosts like Railway allow you to run Next.js apps natively on Bun in production.To enable Bun as the server runtime, update your package.json scripts by prefixing commands with bun --bun:json
+ 
+ {
+  "scripts": {
+    "dev": "bun --bun next dev",
+    "build": "bun --bun next build",
+    "start": "bun --bun next start"
+  }
+}
+Use code with caution.
+
+
+"""
