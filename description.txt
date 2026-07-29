@@ -1,1 +1,9 @@
 installed nanoid package, it helps to generate id(of any length)
+--> npm install nanoid
+
+installed elysia Js as a backend server.
+--> npm install elysia
+
+then also installed eden for type safety when providing data from backend to frontend(Nextjs) and back and forth. it will add type-safety for ongoing data's type and also validate them in runtime.
+
+--> npm install @elysiajs/eden
