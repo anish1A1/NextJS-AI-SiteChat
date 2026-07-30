@@ -7,3 +7,12 @@ installed elysia Js as a backend server.
 then also installed eden for type safety when providing data from backend to frontend(Nextjs) and back and forth. it will add type-safety for ongoing data's type and also validate them in runtime.
 
 --> npm install @elysiajs/eden
+
+
+installed Tanstack Query for managing asynchronous server-state, client side caching, and background refetching.
+
+TanStack Query
+Role: Async state manager and data-fetching cache.
+What it does: Fetches, caches, synchronizes, and updates server state in your components using hooks like useQuery without dictating your routing or file structure.
+Scope: Client-side (though it supports hydration from a server).
+--> npm install @tanstack/react-query 

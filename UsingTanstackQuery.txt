@@ -1,0 +1,65 @@
+Do we need to use Tanstack Query?
+
+Do you need it? You do NOT need it if: You are fetching static data primarily inside Next.js Server Components, or your application has very simple pages where data never changes after loading.
+
+You DO need it if: Your application relies heavily on Client Components ('use client') and features dynamic, user-driven data fetching (like dashboards, infinite scroll, real-time updates, or complex forms).
+
+Why should you use it with Next.js + Elysia?
+
+--> While Elysia’s Eden client gives you end-to-end type safety, it only handles the mechanics of making the HTTP request. It does not manage the state of that data. TanStack Query bridges this gap by managing the life cycle of your network requests.
+
+
+1. Out-of-the-Box Caching:
+Eden will hit your Elysia backend every single time you invoke an API call. TanStack Query caches that data automatically. If a user clicks away from a page and comes back, the data is served instantly from the cache while updating quietly in the background
+
+2. Automatic Revalidation and Synchronization:
+
+It keeps your UI perfectly in sync with your backend without manual code. It automatically re-fetches data when:
+The user re-focuses their browser window.
+The user reconnects to the internet.
+A specific time interval passes (polling).
+
+3. Simplified Loading and Error States
+Instead of manually creating and tracking isLoading, isError, and data states with useState and useEffect for every single API call, TanStack Query provides them out of the box.
+
+4. Clean Mutation Workflows (Creating/Updating Data)
+
+When a user updates data (e.g., updates a username via an Elysia POST route), TanStack Query allows you to instantly update the local UI cache (optimistic updates) or trigger an automatic re-fetch (cache invalidation) so your frontend immediately reflects backend changes.
+
+How it looks integrated with EdenWhen you combine them, you use TanStack Query for state management, and Eden for type safety inside the queryFn:
+
+'use client'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/eden'
+
+export function UserProfile() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['user-data'],
+    queryFn: async () => {
+      // Eden guarantees 'data' here is 100% typed correctly
+      const res = await api.get() 
+      return res.data
+    }
+  })
+
+  if (isLoading) return <div>Loading...</div>
+  return <div>Welcome, {data}</div>
+}
+
+
+While most traditional state management libraries are great for working with client state, they are not so great at working with async or server state. This is because server state is totally different. For starters, server state:
+
+Is persisted remotely in a location you may not control or own
+Requires asynchronous APIs for fetching and updating
+Implies shared ownership and can be changed by other people without your knowledge
+Can potentially become "out of date" in your applications if you're not careful
+Once you grasp the nature of server state in your application, even more challenges will arise as you go, for example:
+
+Caching... (possibly the hardest thing to do in programming)
+Deduping multiple requests for the same data into a single request
+Updating "out of date" data in the background
+Knowing when data is "out of date"
+Reflecting updates to data as quickly as possible
+Performance optimizations like pagination and lazy loading data
+Managing memory and garbage collection of server state
+Memoizing query results with structural sharing
