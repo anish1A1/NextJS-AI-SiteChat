@@ -5,19 +5,25 @@ import { useMutation } from "@tanstack/react-query";
 import { client } from "@/lib/client";
 const ANIMAL = ["Hen", "Bear", "Guppy Fish", "Betta Fish"]
 
+import { useRouter } from "next/navigation";
+
+
 const STORAGE_KEY = "chat_username" 
 //adding a key for username to save in browser.
 
+
 const generateUsername = () => {
   const word = ANIMAL[Math.floor(Math.random() * ANIMAL.length)]
-
+  
   return `anonymous-${word}-${nanoid(5)}`
 }
 
 export default function Home() {
-
+  
   const [username, setUsername] = useState("");
-
+  
+  const router = useRouter()
+  
   useEffect(() => {
     const main = () => {
       const stored = localStorage.getItem(STORAGE_KEY)
@@ -35,9 +41,13 @@ export default function Home() {
   }, [])
 
   const {mutate: createRoom} = useMutation({
-    // we can all whatever we want above.
+    // we can add name whatever we want above.
     mutationFn: async () => {
       const res = await client.api.room.create.post()
+
+      if (res.status === 200) {
+        router.push(`/room/${res.data?.roomId}`)
+      }
     }
   })
   return (

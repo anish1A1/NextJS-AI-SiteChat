@@ -1,0 +1,29 @@
+We used NextJS framework to build our app.
+
+We are creating a AI chat application which has a session when when the session is over it automatically destroys the chats between the user. 
+
+We first used nanoid to use unique value when storing id. We then used ElysiaJS as the backend to keep our code clean.
+
+ElysiaJS --> We are using ElysiaJS for our backend because is extremely fast and handles raw API and database queries significantly faster then NextJS as it uses bun package manager (but still we did the project in npm) 
+
+It is Designed with simplicity and type-safety in mind, Elysia offers a familiar API with extensive support for TypeScript and is optimized for Bun.
+
+It is just like FastAPI python web framework. fast and ready to start building application.
+
+
+Eden --> Then to keep our api data's type-safe we used Eden. We installed the eden package which works really well with the Elysia. It validate data in runtime.
+
+Eden gives the frontend full type-awareness of the backend API without any manual code generation. If I modify an API schema on the backend, TypeScript immediately catches breaking changes on the Next.js frontend, preventing runtime bugs before they hit production.
+
+TanStack Query --> To maintain background data fetching, caching data, synchronize data with the UI and update server state, we are using Tanstack Query because it simplifies how we can use them.
+
+It comes with all the features for data fetching, automatic caching, smart background refetching and many more.
+
+
+Upstash Redis --> To store our data in database we used upstash redis which stores data in key value pair format. It provides serverless, HTTP-based Redis that scales to zero when idle and avoids traditional TCP connection limit (like normal redis).
+
+
+
+
+We first created the home page which has a create chat button. Then when the button is clicked it will take to a room of that particular id, where a new chat gets created it has automatic destroy after a particular time is hit and all the data will be gone. It has minimilastic UI. 
+
