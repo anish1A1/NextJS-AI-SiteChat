@@ -47,6 +47,23 @@ export function UserProfile() {
 }
 
 
+TanStack Query stores data in JavaScript runtime memory (browser RAM). The data is organized internally as plain JavaScript objects within a structure called the QueryCache
+
+Because TanStack Query is a session-bound in-memory cache, it does not write to persistent storage like localStorage or IndexedDB by default. If the browser page is refreshed, the data is wiped out
+
+Internally, the QueryCache acts as a lookup dictionary where:
+The Key: Is a serialized version of your array-based queryKey (e.g., ['users', 5]).
+The Value: Is an internal JavaScript object representing a Query instance
+
+
+A single cached query object contains:
+data: The exact, unaltered JSON/JavaScript payload returned by your queryFn.
+state: Metadata tracking execution status (e.g., 'pending', 'error', 'success').
+meta: Custom user-defined configurations.
+Timestamps: Fields tracking dataUpdatedAt and cache lifecycle states
+
+
+
 While most traditional state management libraries are great for working with client state, they are not so great at working with async or server state. This is because server state is totally different. For starters, server state:
 
 Is persisted remotely in a location you may not control or own
