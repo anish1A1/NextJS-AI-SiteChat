@@ -21,3 +21,7 @@ Scope: Client-side (though it supports hydration from a server).
 5) also installed tanstack query devtools for browser
 
 --> npm install  @tanstack/react-query-devtools
+
+6) installed upstash redis to store data 
+
+--> npm install @upstash/redis

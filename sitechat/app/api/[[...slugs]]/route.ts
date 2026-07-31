@@ -1,14 +1,32 @@
+import { redis } from '@/lib/redis'
 import { Elysia, t } from 'elysia'
+import { nanoid } from 'nanoid'
 
 //This file intercepts all network requests sent to /api/* and hands them over to Elysia to process.
 
+const ROOM_TTL_SECONDS = 60 * 10
+// Time To Live (TTL) and it is 60 * 10 = 600 seconds
 
 const room = new Elysia({prefix: '/room'})
-    .post("/create", () => {
+    .post("/create", async () => {
         // we we add url we also add that url + Http method when using it. ie. create.post()
         
-        console.log("CREATE A NEW ROOM!")
-        return {success : true}
+        const roomId = nanoid()
+
+        await redis.hset(`meta:${roomId}`, {
+            connected: [],  
+            //users who will be connected to chat room, two users.
+            createdAt: Date.now(),
+
+        })
+
+        // auto delete after time expires of the room
+        await redis.expire(`meta:${roomId}`,ROOM_TTL_SECONDS)
+
+        console.log("CREATED A NEW ROOM!")
+        return {
+            roomId ,
+            success : true}
     })
 
 
