@@ -4,8 +4,10 @@ interface PageProp{
     }
 }
 
-const Page = ({params }: PageProp) => {
-    console.log(params)
+const Page = async ({params }: PageProp) => {
+
+    const getParams = await params
+    console.log(getParams)
 
 return <>
     <p>Hello</p>

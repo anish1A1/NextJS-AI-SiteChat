@@ -1,10 +1,11 @@
 import { treaty } from "@elysiajs/eden";
-import {app } from '@/app/api/[[...slugs]]/route'
+import {app, App} from '@/app/api/[[...slugs]]/route'
 
-export const api = 
+export const client = 
     typeof process !== 'undefined'
-    ? treaty(app).api
-    : treaty<typeof app>('localhost:3000').api
+    ? treaty(app)  // server-side uses the actual compiled 'app' code because typescript 'types' used for 'App' vanish at runtime
+    
+    : treaty<App>('localhost:3000') //Client-side uses the 'App' type for autocomplete 
 
 
 // This file sets up Eden, which gives your frontend components type-safe autocomplete when communicating with your backend routes. 
