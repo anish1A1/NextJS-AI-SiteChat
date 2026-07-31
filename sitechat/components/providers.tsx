@@ -1,10 +1,23 @@
 "use client"
 
-import { QueryClient } from "@tanstack/react-query"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useState } from "react"
 
-export const Providers = () => {
-    const [queryClient] = useState(() => new QueryClient())
+export const Providers = ({children}: {children: React.ReactNode}) => {
+
+    // creating the client inside useState prevents data sharing across different user request
+    const [queryClient] = useState(() => new QueryClient({
+        defaultOptions:{
+            queries: {
+                staleTime: 1000 * 60 * 5, //Date stays fresh for 5 minutes before background refetching
+                refetchOnWindowFocus: true, //refetch data when user returns to the tab
+            },
+        },
+    }))
+
+    return <QueryClientProvider client={queryClient}>
+        {children}
+    </QueryClientProvider>
 
     
 }
