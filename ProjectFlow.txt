@@ -27,3 +27,9 @@ Upstash Redis --> To store our data in database we used upstash redis which stor
 
 We first created the home page which has a create chat button. Then when the button is clicked it will take to a room of that particular id, where a new chat gets created it has automatic destroy after a particular time is hit and all the data will be gone. It has minimilastic UI. 
 
+
+When the user creates the chat he/she is routed to room/{generated_roomId}. The proxy.ts will check the authorization of the user. From proxy The user will be added to to redis db, a cookie will be set using token(used uuid to genrate it). This room db will have a connected:list and createdAt:Timestamp. If there is no roomId that is equal to current uri after room/{id}  searched from db than the user will be redirected to / (home) page.
+Here proxy will check if the current user has already been joined in this cuurent chat by looking the cookie, and comparing it with the connected list from the db. -> (1) If user exists than rejoin, 
+(2) if chat users (connected:listof db) length is more than or equal 2 redirect to home page (since new user is joining while existing 2 users)      
+(3) Add the current user with the token and set the cookie with the help of new generated token, then add his token to the connected:lists of the redis db.
+
