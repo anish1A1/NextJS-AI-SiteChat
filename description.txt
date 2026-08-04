@@ -27,6 +27,26 @@ Scope: Client-side (though it supports hydration from a server).
 --> npm install @upstash/redis
 
 
+7) installed zod, as it helps us with schema validation for data
+for e.g. there is a object a:{name, age} sent from one file to another.
+
+when we use,
+ someOtherCode{
+ const {name, age} = a
+}
+it will throw compile type error 
+
+we can use zod to ensure that name and age exists as an string from object a, we write.
+{
+    const {name, age} = a
+}, {
+    a: z.object({
+        name: string().max(100)    
+        age: int()
+    })
+}
+// we can also write more validation in our schema.
+
 
 
 

@@ -1,6 +1,8 @@
 import { redis } from '@/lib/redis'
 import { Elysia, t } from 'elysia'
 import { nanoid } from 'nanoid'
+import { authMiddleware } from './auth'
+import {z} from "zod"
 
 //This file intercepts all network requests sent to /api/* and hands them over to Elysia to process.
 
@@ -27,6 +29,19 @@ const room = new Elysia({prefix: '/room'})
         return {
             roomId ,
             success : true}
+    })
+
+const message = new Elysia({prefix: '/messages'})
+    .use(authMiddleware)   //ensures there is user and returns roomId, token and connected:lists
+
+    .post("/", ({body, auth}) => {
+
+        const {sender, text} = body
+    }, {
+        body: z.object({
+            sender: z.string().max(100),
+            text: z.string().max(1000),
+        })
     })
 
 

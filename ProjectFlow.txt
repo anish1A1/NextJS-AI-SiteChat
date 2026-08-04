@@ -34,6 +34,17 @@ When the user creates the chat he/she is routed to room/{generated_roomId}. The 
 Here proxy will check if the current user has already been joined in this cuurent chat by looking the cookie, and comparing it with the connected list from the db. -> (1) If user exists than rejoin, 
 
 (2) if chat users (connected:listof db) length is more than or equal 2 redirect to home page (since new user is joining while existing 2 users)    
-  
+
 (3) Add the current user with the token and set the cookie with the help of new generated token, then add his token to the connected:lists of the redis db.
 
+
+
+After that we then created a authMiddleware in the ElysiaJS (backend) to validate the users who are trying to send or view message. 
+api/[[...slugs]]/auth.js
+
+We first created a resuable AuthError, this AuthError will be used to provide the message of the Error.
+Then we created authMiddleware which uses AuthError, it first check if user is Unauthorized. Then it checks each time if there is Missing roomId, token and also compares if connected:list is equal to the token. If yes it throw AuthError displaying error for each error types. And if everything is Ok then it returns {rommId, token, and connected:list} inside auth.
+
+
+We created post request for messages, where we used authMiddleware first then used post method and done validation. We also used zod library to define our data's schema and also added validation to incoming datas with it.
+   
