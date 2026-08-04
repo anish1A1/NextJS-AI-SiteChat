@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { redis } from "./lib/redis"
+import { nanoid } from "nanoid"
 
 export const proxy = async (req: NextRequest) => {
 
@@ -28,7 +29,7 @@ export const proxy = async (req: NextRequest) => {
     // we added <> in hgetall to let typescript know the data and its type when receiving from redis db.
 
     if (!meta) {
-        return NextResponse.redirect(new URL("/?error=roam-not-found", req.url))
+        return NextResponse.redirect(new URL("/?error=room-not-found", req.url))
     }
 
     const response = NextResponse.next()
@@ -37,7 +38,26 @@ export const proxy = async (req: NextRequest) => {
     Its used when we want to set cookies or modify response header.
     */
 
+    // generating 
+    const token = nanoid()
 
+    // caching the rooms of that roomId.
+    response.cookies.set("x-auth-token", token, {
+        path: '/',    //this cookie can be used in whole website.
+        httpOnly: true,    //for security
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: "strict",
+    })
+
+
+    // then we add the current roomId token of the connected user and set inside the connected list of redis db.
+    // if another user comes in this url roomId then he will also be added in the room, ...meta.connceted keeps the current data (prev user roomId with token data) and also adds the current one users id in the list of redis db.
+
+
+    await redis.hset(`meta:${roomId}`, {
+        connected: [...meta.connected, token]
+    })
+    return response
 
 }
 
