@@ -3,6 +3,7 @@ import { Elysia, t } from 'elysia'
 import { nanoid } from 'nanoid'
 import { authMiddleware } from './auth'
 import {z} from "zod"
+import { Message, realtime } from '@/lib/realtime'
 
 //This file intercepts all network requests sent to /api/* and hands them over to Elysia to process.
 
@@ -45,7 +46,35 @@ const message = new Elysia({prefix: '/messages'})
         if (!roomExists) {
             throw new Error("Room does not exist")
         }
-        
+
+        // using the Message schema from tanstack realtime. Message is in lib/realtime.
+
+        const message: Message = {
+            id: nanoid(),
+            sender,
+            text,
+            timeStamp: Date.now(),
+            roomId,
+        }
+
+        // add message to history.
+
+        await redis.rpush(`messages:${roomId}`), 
+        {...message, token: auth.token}
+
+        await realtime.channel(roomId).emit("chat.message", message)
+
+        // check how much time is left
+        const remaining = await redis.ttl(`meta:${roomId}`)
+
+        // after it expires delete the chat
+        await redis.expire(`messages:${roomId}`, remaining)
+
+        // also delete the room.
+        await redis.expire(roomId, remaining)
+
+
+
     }, {
         body: z.object({
             sender: z.string().max(100),

@@ -1,4 +1,6 @@
 "use client";
+import { client } from "@/lib/client";
+import { useMutation } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -16,6 +18,14 @@ const Page = () => {
 
     const [copyStatus, setCopyStatus] = useState("Copy")
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
+
+    const {mutate: sendMessage } = useMutation({
+        mutationFn: async ({text}: {text: string}) => {
+            await client.api.messages.post({
+                sender: username, text, {query: {roomId}}
+            })
+        }
+    })
 
     const copyLink = () => {
         const url = window.location.href
