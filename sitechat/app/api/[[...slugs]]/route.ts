@@ -34,9 +34,18 @@ const room = new Elysia({prefix: '/room'})
 const message = new Elysia({prefix: '/messages'})
     .use(authMiddleware)   //ensures there is user and returns roomId, token and connected:lists
 
-    .post("/", ({body, auth}) => {
+    .post("/", async ({body, auth}) => {
 
         const {sender, text} = body
+
+        const {roomId} = auth
+
+        const roomExists = await redis.exists(`meta:${roomId}`)
+
+        if (!roomExists) {
+            throw new Error("Room does not exist")
+        }
+        
     }, {
         body: z.object({
             sender: z.string().max(100),
@@ -45,7 +54,7 @@ const message = new Elysia({prefix: '/messages'})
     })
 
 
-export const app = new Elysia({ prefix: '/api' }).use(room)
+export const app = new Elysia({ prefix: '/api' }).use(room).use(message)
 
 // now when using elysia we first write api. and then the eden.ts returned value constant. 
 // i.e. api.client.  ....  

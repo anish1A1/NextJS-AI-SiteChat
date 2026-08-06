@@ -48,6 +48,22 @@ we can use zod to ensure that name and age exists as an string from object a, we
 // we can also write more validation in our schema.
 
 
+8) installed upstash realtime
 
+Upstash realtime is powered by Upstash Redis and provides a clean, 100% type-safe API for publishing and subscribing to events:
 
+.. Your frontend can subscribre to events.
+.. When you emit an event, it's instantly delivered to live subscibers on the frontend 
+.. You can also replay events that happened in the past.
 
+--> npm i  @upstash/realtime 
+
+Used this for message feature.
+
+And also,
+Create an API route at app/api/realtime/route.ts to handle Realtime connections:
+app/api/realtime/route.ts
+import { handle } from "@upstash/realtime";
+import { realtime } from "@/lib/realtime";
+
+export const GET = handle({ realtime });

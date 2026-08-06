@@ -47,4 +47,13 @@ Then we created authMiddleware which uses AuthError, it first check if user is U
 
 
 We created post request for messages, where we used authMiddleware first then used post method and done validation. We also used zod library to define our data's schema and also added validation to incoming datas with it.
-   
+
+
+
+Then we install upstash/realtime to work with realtime subscribing events. just like chat application
+
+After that we created a schema in realtime.js and wrote all the schema for the message and chat. in chat we also destroy object, so when a chat is destroyed we will know about that.
+
+Then we wrapped the RealTimeProvider above the Tanstack QueryClientProviders 
+Then we added a realtime-client.ts to check the events that gonna happen.
+
