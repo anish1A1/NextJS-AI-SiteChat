@@ -54,8 +54,25 @@ Then we install upstash/realtime to work with realtime subscribing events. just 
 
 Real-time Messaging: The chat features real-time communication powered by Upstash Realtime, allowing users to see messages instantly without manual refreshing
 
-After that we created a schema in realtime.js and wrote all the schema for the message and chat. in chat we also destroy object, so when a chat is destroyed we will know about that.
+1st Step: Define Event Schema
+inside lib/realtime.ts
 
-Then we wrapped the RealTimeProvider above the Tanstack QueryClientProviders 
+We created a schema in realtime.js and wrote all the schema for the message and chat. in chat we also destroy object, so when a chat is destroyed we will know about that.
+
+2nd Step: Create Realtime Route Handler
+We created api/realtime/route.js 
+This route.js will get all the realtime request inside it and handle them.
+
+3rd Step: Add the Provider
+We created components/providers.tsx
+
+We will wrap the childrens inside this Realtimeprovider.  
+we wrapped the RealTimeProvider; inside it we also wrapped Tanstack QueryClientProviders to refetch stale data after 5 min.
+
+4th Step: Create a Typed Client Hook
+
 Then we added a realtime-client.ts to check the events that gonna happen.
+This is client hook which will be used inside "use client" client pages for getting data/messages in realtime whenever there is a new data inside the realtime.
+
+
 
