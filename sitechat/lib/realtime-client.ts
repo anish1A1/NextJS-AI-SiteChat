@@ -1,3 +1,5 @@
+// 4. Create a Typed Client Hook
+
 "use client"
 
 import { createRealtime } from "@upstash/realtime/client"

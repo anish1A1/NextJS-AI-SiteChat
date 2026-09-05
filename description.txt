@@ -56,6 +56,8 @@ Upstash realtime is powered by Upstash Redis and provides a clean, 100% type-saf
 .. When you emit an event, it's instantly delivered to live subscibers on the frontend 
 .. You can also replay events that happened in the past.
 
+Real-time Messaging: The chat features real-time communication powered by Upstash Realtime, allowing users to see messages instantly without manual refreshing
+
 --> npm i  @upstash/realtime 
 
 Used this for message feature.

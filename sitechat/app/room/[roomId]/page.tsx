@@ -21,9 +21,9 @@ const Page = () => {
 
     const {mutate: sendMessage } = useMutation({
         mutationFn: async ({text}: {text: string}) => {
-            await client.api.messages.post({
-                sender: username, text, {query: {roomId}}
-            })
+            // await client.api.messages.post({
+            //     sender: username, text, {query: {roomId}}
+            // })
         }
     })
 

@@ -57,7 +57,8 @@ const message = new Elysia({prefix: '/messages'})
             roomId,
         }
 
-        // add message to history.
+        // add message to history. (add in redis).
+        // Then emit/announce an event in the roomId.
 
         await redis.rpush(`messages:${roomId}`), 
         {...message, token: auth.token}

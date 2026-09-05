@@ -1,3 +1,4 @@
+// 2. Create Realtime Route Handler
 
 import { handle } from "@upstash/realtime";
 import { realtime } from "@/lib/realtime";

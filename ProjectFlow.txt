@@ -50,7 +50,9 @@ We created post request for messages, where we used authMiddleware first then us
 
 
 
-Then we install upstash/realtime to work with realtime subscribing events. just like chat application
+Then we install upstash/realtime to work with realtime subscribing events. just like chat application.
+
+Real-time Messaging: The chat features real-time communication powered by Upstash Realtime, allowing users to see messages instantly without manual refreshing
 
 After that we created a schema in realtime.js and wrote all the schema for the message and chat. in chat we also destroy object, so when a chat is destroyed we will know about that.
 

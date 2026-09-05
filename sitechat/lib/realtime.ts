@@ -1,4 +1,5 @@
-
+// 1st. Define Event Schema
+// Define the structure of the realtime event you want in the app.
 // we need message,  and also need to self destruct or Destroy the chat
 
 import { Realtime, InferRealtimeEvents } from "@upstash/realtime"
