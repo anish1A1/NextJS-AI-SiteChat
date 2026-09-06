@@ -68,8 +68,12 @@ const message = new Elysia({prefix: '/messages'})
         // check how much time is left
         const remaining = await redis.ttl(`meta:${roomId}`)
 
+
         // after it expires delete the chat
         await redis.expire(`messages:${roomId}`, remaining)
+
+        // Delete all the history of this room id
+        await redis.expire(`history:${roomId}`, remaining)
 
         // also delete the room.
         await redis.expire(roomId, remaining)
@@ -77,6 +81,7 @@ const message = new Elysia({prefix: '/messages'})
 
 
     }, {
+        query: z.object({roomId: z.string()}),
         body: z.object({
             sender: z.string().max(100),
             text: z.string().max(1000),
