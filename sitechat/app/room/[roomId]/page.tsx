@@ -3,7 +3,7 @@ import { useUsername } from "@/hooks/useUsername";
 import { client } from "@/lib/client";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // from package date-funs
 import {format} from "date-fns";
@@ -39,7 +39,8 @@ const Page = () => {
         
            setInput("")
         }
-    })
+    });
+
 
     // For Get: Fetching Message also looking stale data.
     const {data: messages, refetch} = useQuery({
@@ -51,6 +52,44 @@ const Page = () => {
         }
     })
 
+    // For Get: Fetching the TTL of the chat.
+    const {data: ttlData} = useQuery({
+        queryKey: ["ttl", roomId],
+        queryFn: async () => {
+            const res = await client.api.room.ttl.get({query: {roomId}})
+            
+            return res.data
+        }
+    })
+
+
+     useEffect(() => {
+        if (ttlData?.ttl !== undefined) {
+            setTimeRemaining(ttlData?.ttl);
+        }
+    }, [ttlData])
+
+    useEffect(() => {
+        if (timeRemaining === null || timeRemaining < 0) return;
+
+        if (timeRemaining === 0) {
+            router.push('/?destroyed=true')
+            return
+        }
+
+        const interval = setInterval(() => {
+            setTimeRemaining((prev) => {
+                if (prev == null || prev <= 1)  {
+                    clearInterval(interval)
+                    return 0
+                }
+                return prev -1
+            })
+        }, 1000)
+        
+        // The cleanup function so, there is no memory leak.
+        return () => clearInterval(interval)
+    }, [timeRemaining, router])
 
     const copyLink = () => {
         const url = window.location.href
@@ -80,6 +119,14 @@ const Page = () => {
         }
     })
 
+    // POST: For deleting the Chat.
+    const {mutate: destroyRoom} = useMutation({
+        mutationFn: async () => {
+            await client.api.room.delete(null, {
+                query: {roomId}
+            })
+        }
+    })
 
     return (
     <main className="flex flex-col h-screen max-h-screen overflow-hidden">
@@ -116,7 +163,9 @@ const Page = () => {
                     </div>
             </div>
 
-            <button className="text-sm bg-zinc-800 hover:bg-red-600 placeholder-zinc-300 px-3 py-1.5 rounded text-zinc-400 hover:text-white font-bold transition-all group flex items-center gap-2 disabled:opacity-50">
+            <button
+            onClick={() => destroyRoom()}
+            className="text-sm bg-zinc-800 hover:bg-red-600 placeholder-zinc-300 px-3 py-1.5 rounded text-zinc-400 hover:text-white font-bold transition-all group flex items-center gap-2 disabled:opacity-50">
                 <span className="group-hover:animate-pulse ">
                 ⚰️
                 </span>

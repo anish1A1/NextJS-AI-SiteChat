@@ -31,6 +31,31 @@ const room = new Elysia({prefix: '/room'})
             roomId ,
             success : true}
     })
+    // We should not give ttl to un connected user so used authMiddleware.
+    .use(authMiddleware)
+    .get('/ttl', async ({auth}) => {
+        const ttl = await redis.ttl(`meta:${auth.roomId}`)
+        return { ttl: ttl > 0 ? ttl : 0}
+        // ensured it is a valid integer to provide in frontend.
+
+    }, {
+        // since we used authMiddleware
+        query: z.object({roomId: z.string()})
+    })
+
+    .delete("/", async ({auth}) => {
+        
+        // make the channel's event chat.destroy: isDestroyed = true.
+        await realtime.channel(auth.roomId).emit("chat.destroy", {isDestroyed: true})
+
+        await Promise.all([
+            redis.del(auth.roomId),
+            redis.del(`meta:${auth.roomId}`),
+            redis.del(`messages:${auth.roomId}`)
+        ])
+    }, {
+        query: z.object({roomId: z.string()})
+    })
 
 const message = new Elysia({prefix: '/messages'})
     .use(authMiddleware)   //ensures there is user and returns roomId, token and connected:lists
@@ -120,6 +145,6 @@ export const app = new Elysia({ prefix: '/api' }).use(room).use(message)
 
 export const GET = app.fetch 
 export const POST = app.fetch 
-
+export const DELETE = app.fetch
 export type App = typeof app;
 //api.fetch:  Elysia natively adheres to the web standard fetch API. By exporting const GET = app.fetch, you tell nextJs: "Whenever a GET requests hits this folder, let elysia handle it"

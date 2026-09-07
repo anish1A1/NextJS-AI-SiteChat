@@ -101,7 +101,17 @@ Use useQuery for get request with parameter roomId.
 We installed: npm i date-fns 
 To make UI look great with displaying date.
 
+We configured our Frontend UI
+Also added custom hook useUsername
+to get current custom username
 
+Username and cookie store are different username is created when the user comes in website while cookie is created when users joins the chat room.
+
+We also created ErrorToast component. 
+Then in route.js we also created get ttl, delete room with with associate data
+Also created get message and realtime display the message in the UI and also user can send message.
+
+Then we created the Chat Destroy now buttom when clicked will destroy the chat and all user will go to home page with toast.
 
 
 
