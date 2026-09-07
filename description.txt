@@ -69,3 +69,9 @@ import { handle } from "@upstash/realtime";
 import { realtime } from "@/lib/realtime";
 
 export const GET = handle({ realtime });
+
+
+After the configuration of realtime we installed a package: 
+npm i date-fns
+
+for formating date in our frontend.

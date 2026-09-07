@@ -76,3 +76,32 @@ This is client hook which will be used inside "use client" client pages for gett
 
 
 
+After the configuration, we created a create message post request in our route.js
+We used authMiddleware in here to check if user and room Id is always there but we also need to give it roomId.
+We need to provide {sender, text} as body, and also auth: {roomId, token, connected} which is received from authMiddleware. 
+
+We already have our Message schema from our realtime.ts
+We create a message object consisting the value of Message schema
+And create a message in redis as list
+then create a realtime channel with id roomId and save its data.
+Then we check if the message and roomId time and if it expire make them expire.
+
+
+
+Now we also make a GET request to get the message and display them in frontend.
+Get the messages from redis list range, then return them but ensure the token is only provided for the current logged In user only or else undefined.
+
+
+TO display and make post request in frontend we use tanstack Query.
+Used useMutation for post request with parameter roomId.
+And
+Use useQuery for get request with parameter roomId.
+
+
+We installed: npm i date-fns 
+To make UI look great with displaying date.
+
+
+
+
+
