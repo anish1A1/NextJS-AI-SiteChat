@@ -2,7 +2,7 @@
 import { useUsername } from "@/hooks/useUsername";
 import { client } from "@/lib/client";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 // from package date-funs
@@ -20,6 +20,7 @@ const Page = () => {
     const params = useParams()
     const roomId = params.roomId as string
 
+    const router = useRouter()
     const { username } = useUsername()
     const [inputVal, setInput] = useState("")
     const inputRef = useRef<HTMLInputElement>(null)
@@ -34,8 +35,9 @@ const Page = () => {
             {
                 sender: username, 
                 text
-           }, {query: {roomId}}
-        )
+           }, {query: {roomId}})
+        
+           setInput("")
         }
     })
 
@@ -67,9 +69,13 @@ const Page = () => {
         events: ["chat.message", "chat.destroy"],
         onData: ({event}) => {
             if(event === "chat.message") {
-
                 // refetch is from tanstack useQuery and got it from messages func.
                 refetch()
+            }
+
+            if (event === "chat.destroy") {
+                // If ttl is 0 then push them to home page.
+                router.push('/?destroyed=true')
             }
         }
     })
