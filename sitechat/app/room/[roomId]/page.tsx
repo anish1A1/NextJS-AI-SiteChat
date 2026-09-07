@@ -14,14 +14,16 @@ const formatTimeRemaing = (seconds: number) => {
 const Page = () => {
     const params = useParams()
     const roomId = params.roomId as string
-    const {username} = useUsername()
+
+    const { username } = useUsername()
     const [inputVal, setInput] = useState("")
     const inputRef = useRef<HTMLInputElement>(null)
 
     const [copyStatus, setCopyStatus] = useState("Copy")
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
 
-    const {mutate: sendMessage } = useMutation({
+    // For Post: Sending Message
+    const {mutate: sendMessage, isPending } = useMutation({
         mutationFn: async ({text}: {text: string}) => {
            await client.api.messages.post(
             {
@@ -31,6 +33,8 @@ const Page = () => {
         )
         }
     })
+
+    // For Get: Fetching Message also looking stale data.
 
     const copyLink = () => {
         const url = window.location.href
@@ -103,6 +107,7 @@ const Page = () => {
                         if(e.key === "Enter" && 
                             inputVal.trim()) {
                                 //  TODO: Send Message (backend)
+                                sendMessage({text : inputVal})
                                 inputRef.current?.focus()
                             }
                     }}
@@ -111,7 +116,16 @@ const Page = () => {
                     />
                 </div>
 
-                <button className="bg-zinc-800 text-zinc-400 px-6 text-sm font-bold hover:text-zinc-200 transition-all disabled:cursor-not-allowed cursor-pointer">SEND</button>
+                <button
+                onClick={() => {
+                        sendMessage({text: inputVal})
+                        inputRef.current?.focus()
+                    }}
+                disabled={!inputVal.trim() || isPending}
+                className="bg-zinc-800 text-zinc-400 px-6 text-sm font-bold hover:text-zinc-200 transition-all disabled:cursor-not-allowed cursor-pointer" 
+                >
+                    SEND
+                </button>
             </div>
         </div>
     </main>

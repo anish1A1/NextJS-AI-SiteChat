@@ -37,6 +37,10 @@ const message = new Elysia({prefix: '/messages'})
 
     .post("/", async ({body, auth}) => {
 
+        // We expect body from our client page.
+        // And auth from our authMiddleware.
+        // Also know we need to provide roomId to our Authmiddleware too with the help of query.
+
         const {sender, text} = body
 
         const {roomId} = auth
@@ -60,8 +64,8 @@ const message = new Elysia({prefix: '/messages'})
         // add message to history. (add in redis).
         // Then emit/announce an event in the roomId.
 
-        await redis.rpush(`messages:${roomId}`), 
-        {...message, token: auth.token}
+        await redis.rpush(`messages:${roomId}`, 
+        {...message, token: auth.token})
 
         await realtime.channel(roomId).emit("chat.message", message)
 
@@ -81,12 +85,29 @@ const message = new Elysia({prefix: '/messages'})
 
 
     }, {
+        // We expect these two from our client
         query: z.object({roomId: z.string()}),
         body: z.object({
             sender: z.string().max(100),
             text: z.string().max(1000),
         })
     })
+
+    .get("/", async ({auth}) => {
+        
+        const messages = await redis.lrange<Message>(`messages:${auth.roomId}`, 0, -1)
+
+        // We need to provide token only of the user who is current user. Other user should be kept hidden or undefined.
+
+        return {messages: messages.map((m) => ({
+            ...m,
+            token: m.token === auth.token ? auth.token : undefined   
+        }))
+        }
+
+    }, {
+        query: z.object({roomId: z.string()})
+    }) 
 
 
 export const app = new Elysia({ prefix: '/api' }).use(room).use(message)
