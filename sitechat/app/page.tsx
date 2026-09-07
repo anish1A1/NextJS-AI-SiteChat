@@ -6,39 +6,14 @@ import { client } from "@/lib/client";
 const ANIMAL = ["Hen", "Bear", "Guppy Fish", "Betta Fish"]
 
 import { useRouter } from "next/navigation";
+import { useUsername } from "@/hooks/useUsername";
 
-
-const STORAGE_KEY = "chat_username" 
-//adding a key for username to save in browser.
-
-
-const generateUsername = () => {
-  const word = ANIMAL[Math.floor(Math.random() * ANIMAL.length)]
-  
-  return `anonymous-${word}-${nanoid(5)}`
-}
 
 export default function Home() {
   
-  const [username, setUsername] = useState("");
+  const {username} = useUsername();
   
   const router = useRouter()
-  
-  useEffect(() => {
-    const main = () => {
-      const stored = localStorage.getItem(STORAGE_KEY)
-
-      if (stored){
-        setUsername(stored)
-        return
-      }
-
-      const generated = generateUsername()
-      localStorage.setItem(STORAGE_KEY, generated)
-      setUsername(generated)
-    }
-    main()
-  }, [])
 
   const {mutate: createRoom} = useMutation({
     // we can add name whatever we want above.
