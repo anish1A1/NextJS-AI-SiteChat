@@ -115,3 +115,57 @@ Then we created the Chat Destroy now buttom when clicked will destroy the chat a
 
 
 
+###
+All the basic chat features are completed
+###
+
+Now we will doing extra features
+
+1. Rate Limiting.
+For rate limiting we will be using Upstash Rate Limiter.
+We can also build rate limiter from scratch but a production rate limiter has to deal with things  like:
+
+a. Atomic Redis operation.
+b. Race conditions when multiple requests arrive simultaneously.
+c. Expiration/ TTL
+d. Sliding-window calculation.
+e. Distributed serverless environments.
+f. concurrent requests across Vercel instances.
+g. Returning remaining/reset information.
+h. 
+When we deploy it in vercel.
+Our Vercel architecure will look:
+
+             Vercel
+               │
+        ┌──────┴──────┐
+        │             │
+     Request 1     Request 2
+        │             │
+        └──────┬──────┘
+               ▼
+          Elysia API
+               │
+               ▼
+        Upstash Redis
+        ┌──────┴──────┐
+        │             │
+   Chat storage   Rate limit
+
+This is exactly the kind of environment where a centralized Redis-based limiter makes sense
+
+
+## 1. What happens to a standard "from scratch" rate limiter on Vercel?
+If you write a standard rate limiter using a basic JavaScript object (Map, array, or in-memory variable), it will fail on Vercel because Vercel functions are stateless and serverless:
+
+* Memory resets: Every time your function goes idle (cold start), the memory wipes clean, resetting all request counters.
+* Isolated instances: Requests from the same user will hit completely different global servers. Server A won't know how many messages Server B has already processed, allowing users to easily bypass your limits.
+
+## 2. How does the Upstash architecture solve this?
+Upstash solves this by moving the rate-limiting state out of the serverless function and into a centralized, external layer:
+
+* Centralized State: Instead of saving counters in the local server's memory, the count is stored globally in Upstash Redis. Every stateless Vercel function queries this single, shared database.
+* Atomic REST/HTTP Operations: Upstash uses fast HTTP connections (perfect for serverless) and executes atomic scripts (like Lua or database pipelines) directly inside Redis. This ensures that no matter which global Vercel server picks up the user's chat message, the global counter updates instantly and thread-safely.
+
+(For your resume, this highlights your understanding of serverless limitations and distributed systems!)
+

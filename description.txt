@@ -75,3 +75,13 @@ After the configuration of realtime we installed a package:
 npm i date-fns
 
 for formating date in our frontend.
+
+###
+Almost all our basic chat feature is completed.
+###
+
+Now adding extra features
+
+#Rate Limiting.
+We added 
+npm install @upstash/ratelimit
