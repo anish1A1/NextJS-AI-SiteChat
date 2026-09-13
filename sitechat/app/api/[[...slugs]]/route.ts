@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid'
 import { authMiddleware } from './auth'
 import {z} from "zod"
 import { Message, realtime } from '@/lib/realtime'
+import { senderRateLimit } from '@/lib/rate-limit'
 
 //This file intercepts all network requests sent to /api/* and hands them over to Elysia to process.
 
@@ -57,14 +58,23 @@ const room = new Elysia({prefix: '/room'})
         query: z.object({roomId: z.string()})
     })
 
+    // Elysia gives you:
+// ├── body    ← frontend request body
+// ├── query   ← frontend URL query
+// ├── auth    ← our auth middleware
+// ├── set     ← Elysia response controls
+// └── ...
+
 const message = new Elysia({prefix: '/messages'})
     .use(authMiddleware)   //ensures there is user and returns roomId, token and connected:lists
 
-    .post("/", async ({body, auth}) => {
+    .post("/", async ({body, auth, set}) => {
 
         // We expect body from our client page.
         // And auth from our authMiddleware.
         // Also know we need to provide roomId to our Authmiddleware too with the help of query.
+
+        // Elysia provides body, query, params, set etc.
 
         const {sender, text} = body
 
@@ -74,6 +84,23 @@ const message = new Elysia({prefix: '/messages'})
 
         if (!roomExists) {
             throw new Error("Room does not exist")
+        }
+
+
+        // Added Rate limit message per sender
+        console.log(sender);
+        
+        const {success, remaining, reset} = await senderRateLimit.limit(sender);
+
+        if (!success) {
+            set.status = 429   //means Too Many Requests
+
+            return {
+                success: false,
+                error: "Too many messages. Please wait before sending again.",
+                remaining,
+                reset
+            }
         }
 
         // using the Message schema from tanstack realtime. Message is in lib/realtime.
@@ -95,18 +122,23 @@ const message = new Elysia({prefix: '/messages'})
         await realtime.channel(roomId).emit("chat.message", message)
 
         // check how much time is left
-        const remaining = await redis.ttl(`meta:${roomId}`)
+        const timeRemaining = await redis.ttl(`meta:${roomId}`)
 
 
         // after it expires delete the chat
-        await redis.expire(`messages:${roomId}`, remaining)
+        await redis.expire(`messages:${roomId}`, timeRemaining)
 
         // Delete all the history of this room id
-        await redis.expire(`history:${roomId}`, remaining)
+        await redis.expire(`history:${roomId}`, timeRemaining)
 
         // also delete the room.
-        await redis.expire(roomId, remaining)
-
+        await redis.expire(roomId, timeRemaining)
+        
+        return {
+            success: true,
+            remaining,
+            reset
+        }
 
 
     }, {
