@@ -48,7 +48,10 @@ export const proxy = async (req: NextRequest) => {
         create a new token, set cookie and add the roomId with the new token for that user, and add all that in redis db.
         Update the db connected list.
     */
-   const existingToken = req.cookies.get("x-auth-token")?.value
+
+    // Fetch the each cookie for each unique roomId
+    const roomCookieName = `x-auth-token-${roomId}`
+   const existingToken = req.cookies.get(roomCookieName)?.value
 
     // 1.    
     if(existingToken && meta.connected.includes(existingToken)){
@@ -72,7 +75,7 @@ export const proxy = async (req: NextRequest) => {
     const token = nanoid()
 
     // caching the rooms of that roomId.
-    response.cookies.set("x-auth-token", token, {
+    response.cookies.set(roomCookieName, token, {
         path: '/',    //this cookie can be used in whole website.
         httpOnly: true,    //for security
         secure: process.env.NODE_ENV === 'production',

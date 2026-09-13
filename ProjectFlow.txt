@@ -35,7 +35,7 @@ Here proxy will check if the current user has already been joined in this cuuren
 
 (2) if chat users (connected:listof db) length is more than or equal 2 redirect to home page (since new user is joining while existing 2 users)    
 
-(3) Add the current user with the token and set the cookie with the help of new generated token, then add his token to the connected:lists of the redis db.
+(3) Add the current user with the token and set the cookie with the help of new generated token, then add his token to the connected:lists of the redis db. The cookie will be unique cookie for each chat. meaning there will be each cookie for each chat created by user with the help of roomId.
 
 
 

@@ -75,6 +75,8 @@ const message = new Elysia({prefix: '/messages'})
         // Also know we need to provide roomId to our Authmiddleware too with the help of query.
 
         // Elysia provides body, query, params, set etc.
+        try{
+
 
         const {sender, text} = body
 
@@ -86,11 +88,10 @@ const message = new Elysia({prefix: '/messages'})
             throw new Error("Room does not exist")
         }
 
-
-        // Added Rate limit message per sender
-        console.log(sender);
         
-        const {success, remaining, reset} = await senderRateLimit.limit(sender);
+        // Added Rate limit message per sender
+        const senderAndRoomLimitKey = `${sender}:${roomId}`
+        const {success, remaining, reset} = await senderRateLimit.limit(senderAndRoomLimitKey);
 
         if (!success) {
             set.status = 429   //means Too Many Requests
@@ -123,8 +124,8 @@ const message = new Elysia({prefix: '/messages'})
 
         // check how much time is left
         const timeRemaining = await redis.ttl(`meta:${roomId}`)
-
-
+            
+        
         // after it expires delete the chat
         await redis.expire(`messages:${roomId}`, timeRemaining)
 
@@ -138,8 +139,15 @@ const message = new Elysia({prefix: '/messages'})
             success: true,
             remaining,
             reset
+        };
+    } catch(serverError:any){
+        console.error("Internal Server Catch-Block triggered:", serverError);
+            set.status = 500; // Define explicit Server Error boundary
+            return {
+                success: false,
+                error: serverError?.message || "An internal error occurred while parsing message data."
+            };
         }
-
 
     }, {
         // We expect these two from our client

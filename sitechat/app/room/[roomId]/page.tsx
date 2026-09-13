@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 // from package date-funs
 import {format} from "date-fns";
 import { useRealtime } from "@/lib/realtime-client";
-
+import { toast } from "sonner";
 
 const formatTimeRemaing = (seconds: number) => {
         const min = Math.floor(seconds/60)
@@ -31,14 +31,48 @@ const Page = () => {
     // For Post: Sending Message
     const {mutate: sendMessage, isPending } = useMutation({
         mutationFn: async ({text}: {text: string}) => {
-           await client.api.messages.post(
+           const res = await client.api.messages.post(
             {
                 sender: username, 
                 text
-           }, {query: {roomId}})
-        
-           setInput("")
+           }, {
+                query: {roomId}
+            },
+        );
+         // 1. If an error exists, extract the text immediately or safely fallback
+        if (res.error) {
+            // Eden Treaty puts your custom returned dictionary inside res.error.value
+            const backendErrorData = res.error?.value as any;
+            
+            // Extract your string: "Too many messages. Please wait before sending again."
+            const errorMessageString = backendErrorData?.error || res.error || "Too many requests";
+            
+            // Throw a standard JavaScript Error instance wrapping that specific string!
+            throw new Error(errorMessageString);
         }
+
+
+        },
+
+        onSuccess: (data) => {
+            // Since we throw errors in mutationFn, onSuccess only handles clean 200 OK responses
+            setInput("");
+        },
+        // 1. Check if the error returned from Elysia backend contains the rate limit string
+        // (Elysia typically structures it under error.value or error.value.error)
+
+        onError: (error) => {
+            
+            console.error("Failed to send message:", error);
+            // Safety check in case something completely empty or null is caught
+            if (!error) {
+                toast.error("Something went wrong, but no server error data was received.");
+                return;
+            }
+            
+            toast.error(error?.message || "Something went wrong!")
+
+        },
     });
 
 
