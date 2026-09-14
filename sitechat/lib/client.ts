@@ -3,7 +3,7 @@ import { App} from '@/app/api/[[...slugs]]/route'
 
 
 // Create a safe, client-only treaty that only uses the Type definition
-export const client = treaty<App>('localhost:3000')
+export const client = treaty<App>('/')
 
 
 // This file sets up Eden, which gives your frontend components type-safe autocomplete when communicating with your backend routes. 
@@ -15,7 +15,7 @@ export const client = treaty<App>('localhost:3000')
     
 //     : treaty<App>('localhost:3000') //Client-side uses the 'App' type for autocomplete 
 
-
+// Now used /  for vercel
 
 
 // Server-Side Render Environment (typeof process !== 'undefined'):
