@@ -3,7 +3,21 @@ import type { App} from '@/app/api/[[...slugs]]/route'
 
 
 // Create a safe, client-only treaty that only uses the Type definition
-export const client = treaty<App>('/')
+
+const getBaseUrl = () => {
+    // If we are running in the browser, handle relative paths or dynamic origins safely
+    if (typeof window !== "undefined"){
+        return window.location.origin;
+    }
+
+    // Fallback for Vercel Server-Side Rendering (SSR) cycles
+    if (process.env.NEXT_PUBLIC_API_URL) {
+        return process.env.NEXT_PUBLIC_API_URL;
+    }
+
+    return "http://localhost:3000"; // Local dev safety fallback
+}
+export const client = treaty<App>(getBaseUrl());
 
 
 // This file sets up Eden, which gives your frontend components type-safe autocomplete when communicating with your backend routes. 
