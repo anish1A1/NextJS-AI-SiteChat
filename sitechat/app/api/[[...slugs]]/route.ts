@@ -11,6 +11,7 @@ import { senderRateLimit } from '@/lib/rate-limit'
 const ROOM_TTL_SECONDS = 60 * 10
 // Time To Live (TTL) and it is 60 * 10 = 600 seconds
 
+// For creating a room.
 const room = new Elysia({prefix: '/room'})
     .post("/create", async () => {
         // we we add url we also add that url + Http method when using it. ie. create.post()
