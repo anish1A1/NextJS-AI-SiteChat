@@ -27,6 +27,9 @@ const Page = () => {
 
     const [copyStatus, setCopyStatus] = useState("Copy")
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
+    // This will help to get the current location of new message.
+    const messageEndRef = useRef<HTMLDivElement>(null);
+
 
     // For Post: Sending Message
     const {mutate: sendMessage, isPending } = useMutation({
@@ -61,7 +64,7 @@ const Page = () => {
         // 1. Check if the error returned from Elysia backend contains the rate limit string
         // (Elysia typically structures it under error.value or error.value.error)
 
-        onError: (error) => {
+        onError: (error : any) => {
             
             console.error("Failed to send message:", error);
             // Safety check in case something completely empty or null is caught
@@ -74,6 +77,17 @@ const Page = () => {
 
         },
     });
+
+    // This is the function that calls the above sendMessage function
+    const handleSendMessage = () => {
+        const text = inputVal.trim();
+
+        // if the input is not a text and is in isPending state then it well not send post request.
+        if (!text || isPending) return;
+
+        sendMessage({text});
+        inputRef.current?.focus();
+    }
 
 
     // For Get: Fetching Message also looking stale data.
@@ -153,6 +167,12 @@ const Page = () => {
         }
     })
 
+    useEffect(() => {
+        messageEndRef.current?.scrollIntoView({
+            behavior: "smooth",
+        });
+    }, [messages])
+
     // POST: For deleting the Chat.
     const {mutate: destroyRoom} = useMutation({
         mutationFn: async () => {
@@ -208,7 +228,7 @@ const Page = () => {
         </header>
         
         {/* All the messages will be shown here. */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 sitechat-scrollbar">
             {messages?.messages.length === 0 && (
                 <div className="flex items-center justify-center h-full">
                     <p className="text-zinc-600 text-sm font-mono">No messages yet, start the Conversation.
@@ -216,25 +236,51 @@ const Page = () => {
                 </div>
             )}
 
-            {messages?.messages.map((msg) => (
-                <div key={msg.id} className="flex flex-col items-start">
-                    <div className="max-w-[80%] group">
-                        <div className="flex items-baseline gap-3 mb-1">
+            {messages?.messages.map((msg) => {
+                const isOwnMessage = msg.sender === username
+
+                return (
+                <div key={msg.id} className={`flex ${
+                    isOwnMessage ? 'justify-end' : 'justify-start'
+                }`}>
+                    <div className={`max-w-[75%] flex flex-col 
+                        ${isOwnMessage ? 'items-end' : 'items-start'}`}>
                             
-                            <span className={`text-sm font-bold ${msg.sender === username ? "text-green-500" : "text-blue-500"}`}>
-                                {msg.sender === username ? 'YOU' : msg.sender}
+                            {/* Sender */}
+                        {!isOwnMessage && (
+                            <span className="text-xs text-blue-400 mb-1 px-2">
+                                {msg.sender}
                             </span>
+                        )}
 
-                            <span className="text-[10px] text-zinc-600 ">{format(msg.timeStamp, "HH:mm")}
-                            </span>
-                        </div>
-
-                        <p className="text-sm text-zinc-300 leading-relaxed break-all">
+                            {/* Message bubble */}
+                    <div
+                        className={`px-4 py-2 rounded-2xl ${
+                            isOwnMessage
+                                ? "bg-green-600 text-white rounded-br-sm"
+                                : "bg-zinc-800 text-zinc-200 rounded-bl-sm"
+                        }`}
+                    >
+                        <p className="text-sm leading-relaxed wrap-break-word">
                             {msg.text}
                         </p>
+
+                        <span
+                        className={`block text-[8px] mt-1 text-right ${
+                            isOwnMessage
+                                ? "text-green-200"
+                                : "text-zinc-500"
+                        }`}
+                    >
+                        {format(msg.timeStamp, "HH:mm")}
+                    </span>
+                    <div ref={messageEndRef}/>
                     </div>
-                </div>
-            ))}
+            </div>
+
+                        
+        </div>
+        )})}
         </div>
 
         <div className="p-4 border-t border-zinc-800 bg-zinc-900/30">
@@ -247,11 +293,8 @@ const Page = () => {
                     className="w-full bg-black border-zinc-800 focus:border-zinc-700 focus:outline-none transition-colors text-zinc-100 placeholder:text-zinc-700 py-3 pl-8 pr-4 text-sm" 
                     value={inputVal}
                     onKeyDown={(e) => {
-                        if(e.key === "Enter" && 
-                            inputVal.trim()) {
-                                //  TODO: Send Message (backend)
-                                sendMessage({text : inputVal})
-                                inputRef.current?.focus()
+                        if(e.key === "Enter") {
+                                handleSendMessage()
                             }
                     }}
                     placeholder="Type Message..."
@@ -261,8 +304,7 @@ const Page = () => {
 
                 <button
                 onClick={() => {
-                        sendMessage({text: inputVal})
-                        inputRef.current?.focus()
+                        handleSendMessage()
                     }}
                 disabled={!inputVal.trim() || isPending}
                 className="bg-zinc-800 text-zinc-400 px-6 text-sm font-bold hover:text-zinc-200 transition-all disabled:cursor-not-allowed cursor-pointer" 
