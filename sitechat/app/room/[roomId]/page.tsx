@@ -30,6 +30,10 @@ const Page = () => {
     // This will help to get the current location of new message.
     const messageEndRef = useRef<HTMLDivElement>(null);
 
+    // Typing indicator states
+    const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
+    const [typingUser, setTypingUser] = useState("");
+
 
     // For Post: Sending Message
     const {mutate: sendMessage, isPending } = useMutation({
@@ -153,7 +157,7 @@ const Page = () => {
 
     useRealtime({
         channels:[roomId],
-        events: ["chat.message", "chat.destroy"],
+        events: ["chat.message", "chat.destroy", "chat.typing"],
         onData: ({event}) => {
             if(event === "chat.message") {
                 // refetch is from tanstack useQuery and got it from messages func.
@@ -163,6 +167,10 @@ const Page = () => {
             if (event === "chat.destroy") {
                 // If ttl is 0 then push them to home page.
                 router.push('/?destroyed=true')
+            }
+
+            if (event === "chat.typing"){
+                
             }
         }
     })

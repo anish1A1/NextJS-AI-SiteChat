@@ -2,7 +2,7 @@ import { redis } from '@/lib/redis'
 import { Elysia, t } from 'elysia'
 import { nanoid } from 'nanoid'
 import { authMiddleware } from './auth'
-import {z} from "zod"
+import {success, z} from "zod"
 import { Message, realtime } from '@/lib/realtime'
 import { senderRateLimit } from '@/lib/rate-limit'
 
@@ -90,7 +90,7 @@ const message = new Elysia({prefix: '/messages'})
 
         
         // Added Rate limit message per sender
-        const senderAndRoomLimitKey = `${sender}:${roomId}`
+        const senderAndRoomLimitKey = `${auth.token}:${roomId}`
         const {success, remaining, reset} = await senderRateLimit.limit(senderAndRoomLimitKey);
 
         if (!success) {
@@ -157,6 +157,27 @@ const message = new Elysia({prefix: '/messages'})
             text: z.string().max(1000),
         })
     })
+
+    // Message typing api
+    .post('/typing', async ({ body, auth }) => {
+    const { typing } = body;
+    const { roomId } = auth;
+
+    await realtime.channel(roomId).emit("chat.typing", {
+        sender: auth.token,
+        typing,
+    });
+
+    return { success: true };
+    }, {
+        query: z.object({
+            roomId: z.string()
+        }),
+        body: z.object({
+            typing: z.boolean()
+        })
+    })
+
 
     .get("/", async ({auth}) => {
         

@@ -22,7 +22,11 @@ const schema = {
         destroy: z.object({
            isDestroyed: z.literal(true),
 
-        }),        
+        }),
+        typing: z.object({
+            sender: z.string(),
+            typing: z.boolean(),
+        })        
     }
 }
 
