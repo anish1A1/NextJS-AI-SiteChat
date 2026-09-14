@@ -34,6 +34,7 @@ const Page = () => {
     const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
     const [typingUser, setTypingUser] = useState("");
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isCurrentlyTyping = useRef(false);
 
 
     // For Post: Sending Message
@@ -138,13 +139,19 @@ const Page = () => {
     const handleTyping = (value: string) => {
         setInput(value);
 
+         // If the input becomes empty, tell the other user immediately and reset the flag
         if (!value.trim()) {
-            sendTyping({typing: false})
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+            isCurrentlyTyping.current = false
+            sendTyping({typing: false});
             return;
         }
 
-        // Tell the other user that we are typing
-        sendTyping({ typing: true });
+        // Tell the other user that we are typing ONLY if we haven't already sent a "true" event
+        if (!isCurrentlyTyping.current) {
+            isCurrentlyTyping.current = true;
+            sendTyping({ typing: true });
+        }
 
 
         // Reset the timer every time the user types
@@ -152,11 +159,12 @@ const Page = () => {
             clearTimeout(typingTimeoutRef.current)
         }
 
-         // If no new character is typed for 1 second,
+        // If no new character is typed for 1.5 seconds,
     // tell the other user that typing has stopped.
         typingTimeoutRef.current = setTimeout(() => {
+            isCurrentlyTyping.current = false;
             sendTyping({typing: false});
-        }, 1000);
+        }, 1500);
     }
 
     useEffect(() => {
