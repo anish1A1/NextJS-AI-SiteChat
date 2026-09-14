@@ -1,5 +1,5 @@
 import { treaty } from "@elysiajs/eden";
-import { App} from '@/app/api/[[...slugs]]/route'
+import type { App} from '@/app/api/[[...slugs]]/route'
 
 
 // Create a safe, client-only treaty that only uses the Type definition
