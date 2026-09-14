@@ -33,6 +33,7 @@ const Page = () => {
     // Typing indicator states
     const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
     const [typingUser, setTypingUser] = useState("");
+    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 
     // For Post: Sending Message
@@ -114,6 +115,58 @@ const Page = () => {
         }
     })
 
+    // For Post: Sending user is typing
+
+    const { mutate: sendTyping } = useMutation({
+    mutationFn: async ({ typing }: { typing: boolean }) => {
+        const res = await client.api.messages.typing.post(
+            { typing, sender: username },
+            {
+                query: { roomId },
+            }
+        );
+
+        if (res.error) {
+            throw new Error("Failed to update typing status");
+        }
+
+        return res.data;
+    },
+});
+
+// For Typing indicator.
+    const handleTyping = (value: string) => {
+        setInput(value);
+
+        if (!value.trim()) {
+            sendTyping({typing: false})
+            return;
+        }
+
+        // Tell the other user that we are typing
+        sendTyping({ typing: true });
+
+
+        // Reset the timer every time the user types
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current)
+        }
+
+         // If no new character is typed for 1 second,
+    // tell the other user that typing has stopped.
+        typingTimeoutRef.current = setTimeout(() => {
+            sendTyping({typing: false});
+        }, 1000);
+    }
+
+    useEffect(() => {
+    return () => {
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+    };
+}, []);
+
 
      useEffect(() => {
         if (ttlData?.ttl !== undefined) {
@@ -158,7 +211,7 @@ const Page = () => {
     useRealtime({
         channels:[roomId],
         events: ["chat.message", "chat.destroy", "chat.typing"],
-        onData: ({event}) => {
+        onData: ({event, data}) => {
             if(event === "chat.message") {
                 // refetch is from tanstack useQuery and got it from messages func.
                 refetch()
@@ -170,7 +223,13 @@ const Page = () => {
             }
 
             if (event === "chat.typing"){
-                
+                console.log("Realtime event:", event, data);
+
+                if (data.sender === username) return;
+                // we do not make typing for current user.
+
+                setTypingUser(data.sender);
+                setIsOtherUserTyping(data.typing);
             }
         }
     })
@@ -282,13 +341,25 @@ const Page = () => {
                     >
                         {format(msg.timeStamp, "HH:mm")}
                     </span>
-                    <div ref={messageEndRef}/>
                     </div>
             </div>
 
                         
         </div>
         )})}
+        {isOtherUserTyping && (
+        <div className="flex items-center gap-2 text-xs text-zinc-500">
+            <div className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:-0.3s]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:-0.15s]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce" />
+            </div>
+
+            <span>{typingUser} is typing...</span>
+        </div>
+    )}
+                    <div ref={messageEndRef}/>
+
         </div>
 
         <div className="p-4 border-t border-zinc-800 bg-zinc-900/30">
@@ -306,7 +377,7 @@ const Page = () => {
                             }
                     }}
                     placeholder="Type Message..."
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={(e) => handleTyping(e.target.value)}
                     />
                 </div>
 

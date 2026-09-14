@@ -160,11 +160,11 @@ const message = new Elysia({prefix: '/messages'})
 
     // Message typing api
     .post('/typing', async ({ body, auth }) => {
-    const { typing } = body;
+    const { typing, sender } = body;
     const { roomId } = auth;
 
     await realtime.channel(roomId).emit("chat.typing", {
-        sender: auth.token,
+        sender,
         typing,
     });
 
@@ -174,7 +174,8 @@ const message = new Elysia({prefix: '/messages'})
             roomId: z.string()
         }),
         body: z.object({
-            typing: z.boolean()
+            sender: z.string().max(100),
+            typing: z.boolean(),
         })
     })
 

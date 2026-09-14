@@ -162,7 +162,7 @@ g. Returning remaining/reset information.
                     │
                     ▼
                 Realtime
-                
+
 For it everything is written in UsingUpstashRateLimiter.txt 
 
 ### Debugging
@@ -176,3 +176,38 @@ This helped us to fix this error. Now per each chat we will have its own unique 
 
 
 
+### added Realtime, message indicator
+
+We added istyping in our schema of realtime, we created a post request in the message/typing and from there we emit the data to our channel of roomId.
+
+User A
+username = "Anish"
+token = "abc123"
+
+        ↓ typing
+
+POST /messages/typing
+{
+    sender: "Anish",
+    typing: true
+}
+
+        ↓
+
+Server authenticates token
+        ↓
+Upstash Realtime
+        ↓
+
+User B receives
+
+{
+    sender: "Anish",
+    typing: true
+}
+
+        ↓
+
+"Anish is typing..."
+
+and in the frontend with the help of useRealtime we get realtime indicator.
