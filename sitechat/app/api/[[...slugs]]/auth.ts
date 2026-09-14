@@ -25,9 +25,7 @@ export const authMiddleware = new Elysia({name: "auth"})
         if (!roomId) {
             throw new AuthError("Missing roomId or token.")
         }
-        console.log(roomId)
         const roomCookieName = `x-auth-token-${roomId}`;
-        console.log('cookie', roomCookieName);
         const token = cookie[roomCookieName]?.value as string | undefined
 
         if (!token) {

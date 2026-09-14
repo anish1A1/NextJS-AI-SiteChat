@@ -133,5 +133,46 @@ e. Distributed serverless environments.
 f. concurrent requests across Vercel instances.
 g. Returning remaining/reset information.
 
+                    POST /messages
+                           │
+                           ▼
+                    authMiddleware
+                           │
+                           ▼
+                  Validate request body
+                           │
+                           ▼
+                    Check room exists
+                           │
+                           ▼
+                  ┌──────────────────┐
+                  │   Rate Limiter   │
+                  │                  │
+                  │ sender           │
+                  │      ↓           │
+                  │ 10 / 1 minute    │
+                  └────────┬─────────┘
+                           │
+                    ┌──────┴──────┐
+                    │             │
+                  allowed       blocked
+                    │             │
+                    ▼             ▼
+               Save message      429
+                    │
+                    ▼
+                Realtime
+                
 For it everything is written in UsingUpstashRateLimiter.txt 
+
+### Debugging
+
+When added rate limiter, we found out that the chat cookies are created only one time, meaning if we open one more chat in browswer tab and add message there will be stating error that token is invalid. 
+Because token is created with cookie value.
+When we create another chat our cookie value changes because we only used one variable to store its value --> x-auth-token. If we add another chat in same browser a new token is generated removing the previous one and resulting on kicking out from the 1st chat we created.
+
+To solve this we used dynamic cookie generation. We generate cookiee per each chat. We use --> x-auth-token-${roomId} as cookie name and store its value from nano Id.
+This helped us to fix this error. Now per each chat we will have its own unique chat cookies. Making each chat independent.
+
+
 
