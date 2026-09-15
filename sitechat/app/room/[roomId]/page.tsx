@@ -291,7 +291,8 @@ const Page = () => {
                         </span>
                     </div>
             </div>
-
+            
+            {/* bUTTON TO DESTROY the room */}
             <button
             onClick={() => destroyRoom()}
             className="text-sm bg-zinc-800 hover:bg-red-600 placeholder-zinc-300 px-3 py-1.5 rounded text-zinc-400 hover:text-white font-bold transition-all group flex items-center gap-2 disabled:opacity-50">
