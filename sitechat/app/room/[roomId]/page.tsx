@@ -303,6 +303,7 @@ const Page = () => {
             </button>
         </header>
         
+
         {/* All the messages will be shown here. */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 sitechat-scrollbar">
             {messages?.messages.length === 0 && (
@@ -312,6 +313,7 @@ const Page = () => {
                 </div>
             )}
 
+    {/* all the messages shown here */}
             {messages?.messages.map((msg) => {
                 const isOwnMessage = msg.sender === username
 
