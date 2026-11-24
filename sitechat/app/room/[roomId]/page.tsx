@@ -28,7 +28,7 @@ const Page = () => {
     const [inputVal, setInput] = useState("")
     const inputRef = useRef<HTMLInputElement>(null)
 
-    const [copyStatus, setCopyStatus] = useState("Copy")
+    const [copyStatus, setCopyStatus] = useState("Share Link")
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
     // This will help to get the current location of new message.
     const messageEndRef = useRef<HTMLDivElement>(null);
@@ -253,7 +253,7 @@ const Page = () => {
         setCopyStatus("Copied")
 
         setTimeout(()=> {
-            setCopyStatus("Copy")
+            setCopyStatus("Share Link")
         }, 5000 )
     }
 
@@ -312,10 +312,10 @@ const Page = () => {
                         Room ID
                     </span>
                     <div className="flex items-center gap-2">
-                        <span className="font-bold text-green-500">{roomId}</span>
+                        <span className="font-bold text-green-500 max-w-27.5 sm:max-w-none truncate">{roomId}</span>
 
                         <button onClick={copyLink} 
-                        className="text-[10px] bg-zinc-800 hover:bg-zinc-500 px-2 py-0.5 rounded text-zinc-200 transition-colors">  {copyStatus}
+                        className="text-[10px] bg-zinc-800 hover:bg-zinc-700 px-2 py-0.5 rounded text-zinc-200 transition-colors cursor-pointer shrink-0">  {copyStatus}
                         </button>
                     </div>
 
@@ -350,11 +350,31 @@ const Page = () => {
         {/* All the messages will be shown here. */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 sitechat-scrollbar">
             {messages?.messages.length === 0 && (
-                <div className="flex items-center justify-center h-full">
-                    <p className="text-zinc-600 text-sm font-mono">No messages yet, start the Conversation.
-                    </p>
+                <div className="flex flex-col items-center justify-center h-full px-4">
+                    <div className="w-full max-w-md border border-zinc-800 bg-zinc-900/40 p-5 rounded-lg text-center space-y-3">
+                        <p className="text-zinc-400 text-xs uppercase tracking-wider font-semibold">
+                            Room Ready • Waiting for Peer
+                        </p>
+                        <p className="text-zinc-500 text-xs">
+                            Share this private link to invite one person. All messages self-destruct when the timer hits zero.
+                        </p>
+
+                        {/* Invite Link Box */}
+                        <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 p-2 rounded">
+                            <span className="text-xs text-zinc-400 font-mono truncate flex-1 select-all">
+                                {typeof window !== "undefined" ? window.location.href : `/room/${roomId}`}
+                            </span>
+                            <button
+                                onClick={copyLink}
+                                className="text-xs bg-green-600 hover:bg-green-500 text-white font-bold px-3 py-1.5 rounded transition-colors shrink-0 cursor-pointer"
+                            >
+                                {copyStatus === "Copied" ? "COPIED!" : "COPY LINK"}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
+
 
     {/* all the messages shown here */}
             {messages?.messages.map((msg) => {
