@@ -3,7 +3,7 @@ import { nanoid } from "nanoid";
 
 // Creating a custom create and useUsername hook.
 
-const ANIMALS = ["Hen", "Bear", "Guppy Fish", "Betta Fish"]
+const ANIMALS = ["Hen", "Bear", "Guppy Fish", "Betta Fish", "Goldfish", "Cat", "Dog", "Parrot", "Cockatiel", "Hamster", "Rabbit", "Turtle", "Frog", "Lizard", "Snake", "Chameleon", "Iguana", "Gecko", "Tarantula", "Scorpion", "Crab", "Shrimp", "Snail", "Starfish", "Jellyfish", "Octopus", "Squid", "Dolphin", "Whale", "Seal", "Walrus"];
 const STORAGE_KEY = 'sitechat_user'
 
 const generateUsername = () => {

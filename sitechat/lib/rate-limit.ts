@@ -4,7 +4,7 @@ import { redis } from "./redis";
 export const senderRateLimit = new Ratelimit({
     redis,
 
-    limiter: Ratelimit.slidingWindow(10, "1 m"),
+    limiter: Ratelimit.slidingWindow(15, "1 m"),
 
     prefix: "sitechat:ratelimit:sender",
 
@@ -12,7 +12,7 @@ export const senderRateLimit = new Ratelimit({
 
 });
 
-// Here we used sliding Window in limiter, where one sender can send a maximum of 10 message in 1 minute.
+// Here we used sliding Window in limiter, where one sender can send a maximum of 15 message in 1 minute.
 
 // Prefix helps to keep rate-limit data seperate from our existing meta:room and messages:roomId
 

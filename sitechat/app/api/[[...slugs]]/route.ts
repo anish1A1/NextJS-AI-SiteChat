@@ -92,7 +92,7 @@ const message = new Elysia({prefix: '/messages'})
 
         
         // Added Rate limit message per sender
-        const senderAndRoomLimitKey = `${auth.token}:${roomId}`
+        const senderAndRoomLimitKey = `Limit:${auth.token}:${roomId}`
         const {success, remaining, reset} = await senderRateLimit.limit(senderAndRoomLimitKey);
 
         if (!success) {
