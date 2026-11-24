@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 import { useUsername } from "@/hooks/useUsername";
 import { client } from "@/lib/client";
@@ -35,7 +38,6 @@ const Page = () => {
     const [typingUser, setTypingUser] = useState("");
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isCurrentlyTyping = useRef(false);
-
 
     // For Post: Sending Message
     const {mutate: sendMessage, isPending } = useMutation({
@@ -176,33 +178,74 @@ const Page = () => {
 }, []);
 
 
-     useEffect(() => {
-        if (ttlData?.ttl !== undefined) {
-            setTimeRemaining(ttlData?.ttl);
-        }
-    }, [ttlData])
+    //  useEffect(() => {
+    //     if (ttlData?.ttl !== undefined) {
+    //         setTimeRemaining(ttlData?.ttl);
+    //     }
+    // }, [ttlData])
+
+    // useEffect(() => {
+    //     if (timeRemaining === null || timeRemaining < 0) return;
+
+    //     if (timeRemaining === 0) {
+    //         router.push('/?destroyed=true')
+    //         return
+    //     }
+
+    //     const interval = setInterval(() => {
+    //         setTimeRemaining((prev) => {
+    //             if (prev == null || prev <= 1)  {
+    //                 clearInterval(interval)
+    //                 return 0
+    //             }
+    //             return prev -1
+    //         })
+    //     }, 1000)
+        
+    //     // The cleanup function so, there is no memory leak.
+    //     return () => clearInterval(interval)
+    // }, [timeRemaining, router])
+
 
     useEffect(() => {
-        if (timeRemaining === null || timeRemaining < 0) return;
+        if (ttlData?.ttl === undefined) return;
 
-        if (timeRemaining === 0) {
-            router.push('/?destroyed=true')
-            return
+        if (ttlData.ttl <= 0) {
+            setTimeRemaining(0);
+            router.push('/?destroyed=true');
+            return;
         }
 
-        const interval = setInterval(() => {
-            setTimeRemaining((prev) => {
-                if (prev == null || prev <= 1)  {
-                    clearInterval(interval)
-                    return 0
-                }
-                return prev -1
-            })
-        }, 1000)
-        
-        // The cleanup function so, there is no memory leak.
-        return () => clearInterval(interval)
-    }, [timeRemaining, router])
+        // Set the exact expiration time in milliseconds
+        const expiresAt = Date.now() + ttlData.ttl * 1000;
+
+        const updateRemaining = () => {
+            const remaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+            setTimeRemaining(remaining);
+            if (remaining === 0) {
+                router.push('/?destroyed=true');
+            }
+        }; 
+
+        // Run immediately so there's no 1 second delay on mount/ refetch
+        updateRemaining();
+
+        const interval = setInterval(updateRemaining, 1000);
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                updateRemaining();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('focus', updateRemaining);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('focus', updateRemaining);
+        }
+    }, [ttlData, router]);
 
     const copyLink = () => {
         const url = window.location.href
@@ -231,7 +274,7 @@ const Page = () => {
             }
 
             if (event === "chat.typing"){
-                console.log("Realtime event:", event, data);
+                // console.log("Realtime event:", event, data);
 
                 if (data.sender === username) return;
                 // we do not make typing for current user.

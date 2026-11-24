@@ -1,0 +1,5 @@
+1. when a user enters display the message user A has joined the chat. for both the creator and joiner.
+2. Create a option to send the created chat link. and also to join chat by entering roomId or URL
+3. Create a read message ticker. when a user reads the message for both side.
+4. Use AI to make the project outstanding for my resume. But how?? and where to use it??
+5. Show a menu button when clicked shows the chat that he has opened
