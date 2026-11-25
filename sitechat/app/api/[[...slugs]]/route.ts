@@ -198,6 +198,30 @@ const message = new Elysia({prefix: '/messages'})
         query: z.object({roomId: z.string()})
     }) 
 
+    .post('/read', async ({body, auth}) => {
+        const { sender} = body;
+        const {roomId} = auth;
+        const readAt = Date.now();
+
+        await realtime.channel(roomId).emit("chat.read", {
+            reader: sender,
+            readAt,
+        })
+
+        // 2. (Optional) Saves watermark in Redis with matching room TTL so page refreshes remember it
+        const ttl = await redis.ttl(`meta:${roomId}`);
+        if (ttl > 0) {
+            await redis.set(`readWatermark:${roomId}:${sender}`, readAt, { ex: ttl });
+        }
+        return {success: true, readAt}
+    }, {
+        query: z.object({roomId: z.string()}),
+        body: z.object({
+            sender: z.string().max(100),
+        })
+    })
+
+
 
 export const app = new Elysia({ prefix: '/api' }).use(room).use(message)
 

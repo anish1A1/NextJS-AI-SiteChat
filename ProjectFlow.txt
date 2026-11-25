@@ -175,7 +175,7 @@ To solve this we used dynamic cookie generation. We generate cookiee per each ch
 This helped us to fix this error. Now per each chat we will have its own unique chat cookies. Making each chat independent.
 
 
-
+2) Typing Indicator
 ### added Realtime, message indicator
 
 We added istyping in our schema of realtime, we created a post request in the message/typing and from there we emit the data to our channel of roomId.
@@ -211,3 +211,13 @@ User B receives
 "Anish is typing..."
 
 and in the frontend with the help of useRealtime we get realtime indicator.
+
+
+Now after creating the Typing indicator we reformatted our main home screen UI where we added a option to join link with the URL added in it.
+
+
+3) Read Timestamp
+After Doing that the next step to build a realtime read receipt ticker (like ✓ for Sent and ✓✓ in blue/green for Seen) for both users without burning extra Upstash Redis commands, we use a "Read Watermark" (Last-Read Timestamp) pattern rather than updating individual messages in Redis.
+
+a) add the chat.read Event to your Realtimne Schema (lib/realtime.ts)
+b) Add a /read Endpoint in Your ElysiaJS Backend

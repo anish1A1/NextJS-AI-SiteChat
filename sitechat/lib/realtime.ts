@@ -26,7 +26,11 @@ const schema = {
         typing: z.object({
             sender: z.string(),
             typing: z.boolean(),
-        })        
+        }),
+        read: z.object({
+            reader: z.string(), // username of the person who read the messages
+            readAt: z.number(), // timestamp when they viewed the latest message
+        })   
     }
 }
 

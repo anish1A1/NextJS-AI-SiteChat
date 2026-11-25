@@ -39,6 +39,10 @@ const Page = () => {
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isCurrentlyTyping = useRef(false);
 
+    // Read receipt states
+    const [otherUserReadAt, setOtherUserReadAt] = useState<number>(0);
+
+
     // For Post: Sending Message
     const {mutate: sendMessage, isPending } = useMutation({
         mutationFn: async ({text}: {text: string}) => {
@@ -261,7 +265,7 @@ const Page = () => {
 
     useRealtime({
         channels:[roomId],
-        events: ["chat.message", "chat.destroy", "chat.typing"],
+        events: ["chat.message", "chat.destroy", "chat.typing", "chat.read"],
         onData: ({event, data}) => {
             if(event === "chat.message") {
                 // refetch is from tanstack useQuery and got it from messages func.
@@ -282,8 +286,41 @@ const Page = () => {
                 setTypingUser(data.sender);
                 setIsOtherUserTyping(data.typing);
             }
+
+            if (event === "chat.read" && data.reader !== username) {
+                setOtherUserReadAt((prev) => Math.max(prev, data.readAt));
+            }
         }
     })
+
+    // Notify the other user when you view their new messages.
+
+    useEffect(() => {
+        const list = messages?.messages ?? [];
+        if (list.length === 0 || !username) return;
+
+        const lastMessage = list[list.length - 1];
+        const isFromOtherUser = lastMessage.sender !== username;
+
+        const markRead = () => {
+            if (document.visibilityState === "visible" && isFromOtherUser) {
+                client.api.messages.read.post(
+                    { sender: username },
+                    { query: { roomId } }
+                );
+            }
+        };
+
+        markRead();
+        window.addEventListener("focus", markRead);
+        document.addEventListener("visibilitychange", markRead);
+
+        return () => {
+            window.removeEventListener("focus", markRead);
+            document.removeEventListener("visibilitychange", markRead);
+        };
+    }, [messages?.messages, username, roomId]); // <-- Changed from messages?.messages.length to messages?.messages
+
 
     useEffect(() => {
         messageEndRef.current?.scrollIntoView({
@@ -379,6 +416,7 @@ const Page = () => {
     {/* all the messages shown here */}
             {messages?.messages.map((msg) => {
                 const isOwnMessage = msg.sender === username
+                const isRead = isOwnMessage && otherUserReadAt > 0 && msg.timeStamp <= otherUserReadAt + 2000
 
                 return (
                 <div key={msg.id} className={`flex ${
@@ -406,15 +444,28 @@ const Page = () => {
                             {msg.text}
                         </p>
 
-                        <span
-                        className={`block text-[8px] mt-1 text-right ${
-                            isOwnMessage
-                                ? "text-green-200"
-                                : "text-zinc-500"
-                        }`}
-                    >
-                        {format(msg.timeStamp, "HH:mm")}
-                    </span>
+                        <div className="flex items-center justify-end gap-1 mt-1">
+                            <span
+                            className={`block text-[8px] mt-1 text-right ${
+                                isOwnMessage
+                                    ? "text-green-200"
+                                    : "text-zinc-500"
+                            }`}>
+                                {format(msg.timeStamp, "HH:mm")}
+                            </span>
+
+                            {isOwnMessage && (
+                                <span
+                                    title={isRead ? "Read" : "Sent"}
+                                    className={`text-[10px] font-bold tracking-tighter ${
+                                    isRead ? "text-sky-300" : "text-green-200/70"
+                                    }`}
+                                >
+                                    {isRead ? "✓✓" : "✓"}
+                                </span>
+                            )}
+
+                        </div>
                     </div>
             </div>
 
