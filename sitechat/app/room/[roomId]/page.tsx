@@ -182,35 +182,6 @@ const Page = () => {
 }, []);
 
 
-    //  useEffect(() => {
-    //     if (ttlData?.ttl !== undefined) {
-    //         setTimeRemaining(ttlData?.ttl);
-    //     }
-    // }, [ttlData])
-
-    // useEffect(() => {
-    //     if (timeRemaining === null || timeRemaining < 0) return;
-
-    //     if (timeRemaining === 0) {
-    //         router.push('/?destroyed=true')
-    //         return
-    //     }
-
-    //     const interval = setInterval(() => {
-    //         setTimeRemaining((prev) => {
-    //             if (prev == null || prev <= 1)  {
-    //                 clearInterval(interval)
-    //                 return 0
-    //             }
-    //             return prev -1
-    //         })
-    //     }, 1000)
-        
-    //     // The cleanup function so, there is no memory leak.
-    //     return () => clearInterval(interval)
-    // }, [timeRemaining, router])
-
-
     useEffect(() => {
         if (ttlData?.ttl === undefined) return;
 
@@ -337,6 +308,18 @@ const Page = () => {
         }
     })
 
+    // Helper to toggle @ai prefix in your input
+    const isAiPrompt = inputVal.trim().toLowerCase().startsWith("@ai");
+
+    const toggleAiPrefix = () => {
+        if (isAiPrompt) {
+            setInput(inputVal.replace(/^@ai\s*/i, ""));
+        } else {
+            setInput(`@ai ${inputVal}`);
+        }
+        inputRef.current?.focus();
+    };
+
     return (
     <main className="flex flex-col h-screen max-h-screen overflow-hidden">
         <header className="border-b border-zinc-800 p-4 flex items-center justify-between bg-zinc-900/30 ">
@@ -412,111 +395,198 @@ const Page = () => {
                 </div>
             )}
 
+{/* Empty Room Hint Banner so users & recruiters immediately discover @ai */}
+{messages?.messages.length === 0 && (
+    <div className="my-auto mx-auto max-w-md border border-zinc-800 bg-zinc-900/40 p-5 text-center space-y-3">
+        <p className="text-xs uppercase tracking-wider text-zinc-400">
+            Ephemeral Room Active • Shared AI Enabled
+        </p>
+        <p className="text-xs text-zinc-500">
+            Messages self-destruct when the timer ends. Start any message with{" "}
+            <span className="text-purple-400 font-semibold">@ai</span> to ask Gemini together.
+        </p>
+        <div className="flex flex-wrap justify-center gap-2 pt-1">
+            {[
+                "@ai Give us an icebreaker question",
+                "@ai Explain how this ephemeral chat works",
+            ].map((sample) => (
+                <button
+                    key={sample}
+                    type="button"
+                    onClick={() => {
+                        setInput(sample);
+                        inputRef.current?.focus();
+                    }}
+                    className="text-[11px] border border-purple-500/30 bg-purple-950/20 text-purple-300 px-2.5 py-1 hover:bg-purple-900/30 transition cursor-pointer"
+                >
+                    ✨ {sample}
+                </button>
+            ))}
+        </div>
+    </div>
+)}
 
-    {/* all the messages shown here */}
-            {messages?.messages.map((msg) => {
-                const isOwnMessage = msg.sender === username
-                const isRead = isOwnMessage && otherUserReadAt > 0 && msg.timeStamp <= otherUserReadAt + 2000
+{/* all the messages shown here */}
+{messages?.messages.map((msg) => {
+    const isOwnMessage = msg.sender === username;
+    const isAiMessage = msg.sender === "AI Assistant";
+    const isRead = isOwnMessage && otherUserReadAt > 0 && msg.timeStamp <= otherUserReadAt + 2000;
 
-                return (
-                <div key={msg.id} className={`flex ${
-                    isOwnMessage ? 'justify-end' : 'justify-start'
-                }`}>
-                    <div className={`max-w-[75%] flex flex-col 
-                        ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-                            
-                            {/* Sender */}
-                        {!isOwnMessage && (
-                            <span className="text-xs text-blue-400 mb-1 px-2">
-                                {msg.sender}
-                            </span>
-                        )}
-
-                            {/* Message bubble */}
-                    <div
-                        className={`px-4 py-2 rounded-2xl ${
-                            isOwnMessage
-                                ? "bg-green-600 text-white rounded-br-sm"
-                                : "bg-zinc-800 text-zinc-200 rounded-bl-sm"
+    return (
+        <div
+            key={msg.id}
+            className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
+        >
+            <div
+                className={`max-w-[75%] flex flex-col ${
+                    isOwnMessage ? "items-end" : "items-start"
+                }`}
+            >
+                {/* Sender */}
+                {!isOwnMessage && (
+                    <span
+                        className={`text-xs mb-1 px-2 flex items-center gap-1 ${
+                            isAiMessage ? "text-purple-400 font-semibold" : "text-blue-400"
                         }`}
                     >
-                        <p className="text-sm leading-relaxed wrap-break-word">
-                            {msg.text}
-                        </p>
+                        {isAiMessage ? "✨ AI Assistant" : msg.sender}
+                    </span>
+                )}
 
-                        <div className="flex items-center justify-end gap-1 mt-1">
-                            <span
+                {/* Message bubble */}
+                <div
+                    className={`px-4 py-2 rounded-2xl ${
+                        isOwnMessage
+                            ? "bg-green-600 text-white rounded-br-sm"
+                            : isAiMessage
+                            ? "bg-purple-950/30 border border-purple-500/40 text-zinc-100 rounded-bl-sm"
+                            : "bg-zinc-800 text-zinc-200 rounded-bl-sm"
+                    }`}
+                >
+                    <p className="text-sm leading-relaxed wrap-break-word whitespace-pre-wrap">
+                        {msg.text}
+                    </p>
+
+                    <div className="flex items-center justify-end gap-1 mt-1">
+                        <span
                             className={`block text-[8px] mt-1 text-right ${
                                 isOwnMessage
                                     ? "text-green-200"
+                                    : isAiMessage
+                                    ? "text-purple-300/70"
                                     : "text-zinc-500"
-                            }`}>
-                                {format(msg.timeStamp, "HH:mm")}
-                            </span>
+                            }`}
+                        >
+                            {format(msg.timeStamp, "HH:mm")}
+                        </span>
 
-                            {isOwnMessage && (
-                                <span
-                                    title={isRead ? "Read" : "Sent"}
-                                    className={`text-[10px] font-bold tracking-tighter ${
+                        {isOwnMessage && (
+                            <span
+                                title={isRead ? "Read" : "Sent"}
+                                className={`text-[10px] font-bold tracking-tighter ${
                                     isRead ? "text-sky-300" : "text-green-200/70"
-                                    }`}
-                                >
-                                    {isRead ? "✓✓" : "✓"}
-                                </span>
-                            )}
-
-                        </div>
+                                }`}
+                            >
+                                {isRead ? "✓✓" : "✓"}
+                            </span>
+                        )}
                     </div>
-            </div>
-
-                        
-        </div>
-        )})}
-        {isOtherUserTyping && (
-        <div className="flex items-center gap-2 text-xs text-zinc-500">
-            <div className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:-0.3s]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce [animation-delay:-0.15s]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce" />
-            </div>
-
-            <span>{typingUser} is typing...</span>
-        </div>
-    )}
-                    <div ref={messageEndRef}/>
-
-        </div>
-
-        <div className="p-4 border-t border-zinc-800 bg-zinc-900/30">
-            <div className="flex gap-4">
-                <div className="flex-1 relative group">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 animate-pulse">{">"}</span>
-
-                    <input type="text"
-                    autoFocus
-                    className="w-full bg-black border-zinc-800 focus:border-zinc-700 focus:outline-none transition-colors text-zinc-100 placeholder:text-zinc-700 py-3 pl-8 pr-4 text-sm" 
-                    value={inputVal}
-                    onKeyDown={(e) => {
-                        if(e.key === "Enter") {
-                                handleSendMessage()
-                            }
-                    }}
-                    placeholder="Type Message..."
-                    onChange={(e) => handleTyping(e.target.value)}
-                    />
                 </div>
-
-                <button
-                onClick={() => {
-                        handleSendMessage()
-                    }}
-                disabled={!inputVal.trim() || isPending}
-                className="bg-zinc-800 text-zinc-400 px-6 text-sm font-bold hover:text-zinc-200 transition-all disabled:cursor-not-allowed cursor-pointer" 
-                >
-                    SEND
-                </button>
             </div>
         </div>
+    );
+})}
+
+{isOtherUserTyping && (
+    <div className="flex items-center gap-2 text-xs text-zinc-500">
+        <div className="flex items-center gap-1">
+            <span
+                className={`w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:-0.3s] ${
+                    typingUser === "AI Assistant" ? "bg-purple-400" : "bg-zinc-500"
+                }`}
+            />
+            <span
+                className={`w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:-0.15s] ${
+                    typingUser === "AI Assistant" ? "bg-purple-400" : "bg-zinc-500"
+                }`}
+            />
+            <span
+                className={`w-1.5 h-1.5 rounded-full animate-bounce ${
+                    typingUser === "AI Assistant" ? "bg-purple-400" : "bg-zinc-500"
+                }`}
+            />
+        </div>
+
+        <span className={typingUser === "AI Assistant" ? "text-purple-400" : ""}>
+            {typingUser === "AI Assistant" ? "✨ AI Assistant is thinking..." : `${typingUser} is typing...`}
+        </span>
+    </div>
+)}
+
+<div ref={messageEndRef} />
+</div>
+
+<div className="p-4 border-t border-zinc-800 bg-zinc-900/30">
+    <div className="flex gap-3">
+        <div className="flex-1 relative group flex items-center">
+            <span
+                className={`absolute left-3.5 top-1/2 -translate-y-1/2 animate-pulse ${
+                    isAiPrompt ? "text-purple-400" : "text-gray-500"
+                }`}
+            >
+                {">"}
+            </span>
+
+            {/* Quick @ai toggle button inside the input */}
+            <button
+                type="button"
+                onClick={toggleAiPrefix}
+                title="Toggle @ai assistant prompt"
+                className={`absolute left-7 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[11px] font-bold border transition cursor-pointer ${
+                    isAiPrompt
+                        ? "bg-purple-600/30 border-purple-500 text-purple-300"
+                        : "bg-zinc-900 border-zinc-700 text-zinc-400 hover:text-purple-400 hover:border-purple-500/50"
+                }`}
+            >
+                @ai
+            </button>
+
+            <input
+                ref={inputRef}
+                type="text"
+                autoFocus
+                className={`w-full bg-black border focus:outline-none transition-colors text-zinc-100 placeholder:text-zinc-600 py-3 pl-18 pr-4 text-sm ${
+                    isAiPrompt
+                        ? "border-purple-500/60 focus:border-purple-400"
+                        : "border-zinc-800 focus:border-zinc-700"
+                }`}
+                value={inputVal}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                        handleSendMessage();
+                    }
+                }}
+                placeholder="Type message or click @ai to ask Gemini..."
+                onChange={(e) => handleTyping(e.target.value)}
+            />
+        </div>
+
+        <button
+            onClick={() => {
+                handleSendMessage();
+            }}
+            disabled={!inputVal.trim() || isPending}
+            className={`px-6 text-sm font-bold transition-all disabled:cursor-not-allowed cursor-pointer ${
+                isAiPrompt
+                    ? "bg-purple-600 text-white hover:bg-purple-500"
+                    : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+            }`}
+        >
+            {isAiPrompt ? "ASK AI" : "SEND"}
+        </button>
+    </div>
+</div>
+
     </main>
     )
 }
