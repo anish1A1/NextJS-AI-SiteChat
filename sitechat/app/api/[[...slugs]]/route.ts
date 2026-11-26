@@ -7,10 +7,17 @@ import { z} from "zod"
 import { Message, realtime } from '@/lib/realtime'
 import { senderRateLimit } from '@/lib/rate-limit'
 
+
+import {GoogleGenAI} from "@google/genai";
 //This file intercepts all network requests sent to /api/* and hands them over to Elysia to process.
 
 const ROOM_TTL_SECONDS = 60 * 10
 // Time To Live (TTL) and it is 60 * 10 = 600 seconds
+
+
+// Initialize outside the handler so it's reused across requests
+const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY})
+
 
 // For creating a room.
 const room = new Elysia({prefix: '/room'})
@@ -123,6 +130,79 @@ const message = new Elysia({prefix: '/messages'})
         {...message, token: auth.token})
 
         await realtime.channel(roomId).emit("chat.message", message)
+
+
+        if (text.trim().toLowerCase().startsWith("@ai")){
+            const prompt = text.replace(/^@ai\s*/i, "").trim();
+
+            if (prompt){
+                //  Emitting typing indicator so both users see "AI Assistant is typing..."
+                await realtime.channel(roomId).emit("chat.typing", {
+                    sender: "AI Assistant",
+                    typing: true
+                });
+
+                try{
+                    // Fetch last 15 messages from Redis for conversation context
+
+                    const recentMessages = await redis.lrange<Message>(`messages:${roomId}`, -15, -1);
+
+                    const chatContext = recentMessages
+                    .map((m) => `${m.sender}: ${m.text}`)
+                    .join("\n");
+
+                    const response = await ai.models.generateContent({
+                        model: "gemini-3.5-flash-lite",
+                        contents: `You are a helpful, concise AI assistant inside a private ephemeral chat room.
+                            Here is the recent conversation history:
+                            ${chatContext}
+
+                            User (${sender}) asked: ${prompt}
+                            Keep your response clear, direct, and concise (under 150 words unless code or a detailed list is requested).`,
+                    });
+                    
+                    const aiReplyText = response.text || "Sorry, I couldn't generate a response.";
+                    
+                    const aiMessage: Message = {
+                        id: nanoid(),
+                        sender: "AI Assistant",
+                        text: aiReplyText,
+                        timeStamp: Date.now(),
+                        roomId,
+                    };
+
+                    // Save AI message to Redis (no user token needed) & emit to both users
+                    await redis.rpush(`messages:${roomId}`, aiMessage);
+                    await realtime.channel(roomId).emit("chat.message",aiMessage )
+                
+                } catch(aiError) {
+                    console.error("Gemini AI Error: ", aiError);
+                    // Send a graceful fallback message in chat instead of crashing the request
+
+                    const fallbackMessage: Message = {
+                        id : nanoid(),
+                        sender: "AI Assistant",
+                        text: "⚠️ AI is temporarily unavailable. Please try again in a moment.",
+                        timeStamp: Date.now(),
+                        roomId,
+                    };
+
+                    await redis.rpush(`messages:${roomId}`, fallbackMessage);
+                    await realtime.channel(roomId).emit("chat.message", fallbackMessage);
+                
+                } finally{
+                    // Stop the AI typing indicator
+                    await realtime.channel(roomId).emit("chat.typing", {
+                        sender: "AI Assistant",
+                        typing: false,
+                    });
+                }
+            }
+        }
+
+
+
+
 
         // check how much time is left
         const timeRemaining = await redis.ttl(`meta:${roomId}`)

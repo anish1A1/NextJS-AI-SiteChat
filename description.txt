@@ -85,3 +85,9 @@ Now adding extra features
 #Rate Limiting.
 We added 
 npm install @upstash/ratelimit
+
+
+#We added ai feaatures for users to use ai with past 15 messages and reply to it
+Used Gemini
+
+npm install @google/genai

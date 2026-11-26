@@ -224,3 +224,8 @@ b) Add a /read Endpoint in Your ElysiaJS Backend
 
 c) use Realtime from rooms page.tsx and join it.
 
+
+// All the project features for Chatting is done.
+
+// We will be adding ai feaatures for users to use ai with past 15 messages and reply to it.
+Used Gemini
