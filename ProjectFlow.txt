@@ -229,3 +229,18 @@ c) use Realtime from rooms page.tsx and join it.
 
 // We will be adding ai feaatures for users to use ai with past 15 messages and reply to it.
 Used Gemini
+
+We integrated Gemeni in our post request of send message in here if the user typed ai in the text value. a condition will be met with a try and catch block.
+1)In here firstly typing will be set true with AI Assistant as the sender
+2) Now try catch starts in here we will get the new 15 message of that sender from the redis with the help of lrange -15, -1
+3) Initialize the model and prompts for the model.
+4) now make an Ai Message same as Message schema from realtime 
+5) If AI generated response add the generated reesponse to the redis aswell as emit to the message channel.
+6) If error then use the fallback aiError Message and send it to the redis as well as emit to the message channel.
+7) Finally stop the typing Indicator
+
+Your AI code is done.
+Now to use this in the frontend user must type @ai in the textbox
+So updated the UI of the frontend chat interface and made user friendly.
+
+Our project is completed.
